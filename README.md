@@ -1,0 +1,3 @@
+# FitJournal
+Proyecto para la asignatura PAD (Programación de Aplicaciones para Dispositivos Móviles).
+FitJournal es una aplicación que permite a sus usuarios mantener un seguimiento constante y organizado de sus entrenamientos en el gimnasio, seguir sus entrenamientos, subir fotos de su progreso, apuntar notas escritas, ver un calendario con sus entrenamientos pasados. En el siguiente apartado se describirán las funcionalidades iniciales de la aplicación. Se han descrito todas las funcionalidades que tendría la app completa (En una versión inicial comercializable), a pesar de que exista la posibilidad de que no dé tiempo a desarrollar todas
