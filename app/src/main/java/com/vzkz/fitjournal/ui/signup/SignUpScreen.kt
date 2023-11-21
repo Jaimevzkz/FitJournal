@@ -74,11 +74,16 @@ private fun ScreenBody(
         var password by remember { mutableStateOf("1234Qwerty") }
         var repeatPassword by remember { mutableStateOf("1234Qwerty") }
         var nickname by remember { mutableStateOf("jaimee") }
+        var firstname by remember { mutableStateOf("Jaime") }
+        var lastname by remember { mutableStateOf("Vázquez") }
         //validation
         var isEmailValid by remember { mutableStateOf(true) }
         var isPasswordValid by remember { mutableStateOf(true) }
         var isSamePassword by remember { mutableStateOf(true) }
         var showDialog by remember { mutableStateOf(false) }
+        var isNicknameValid by remember { mutableStateOf(false) }
+        var isFirstNameValid by remember { mutableStateOf(false) }
+        var isLastNameValid by remember { mutableStateOf(false) }
         showDialog = state.error.isError
 
         MyAuthHeader(Modifier.align(Alignment.TopEnd))
@@ -130,7 +135,7 @@ private fun ScreenBody(
                 })
             if (!isSamePassword) {
                 Text(
-                    text = "Passwords must coincide.",
+                    text = stringResource(R.string.passwords_must_coincide),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -140,7 +145,53 @@ private fun ScreenBody(
                 modifier = Modifier,
                 text = nickname,
                 hint = stringResource(R.string.user_name),
-                onTextChanged = { nickname = it })
+                onTextChanged = {
+                    nickname = it
+                    isNicknameValid = (nickname != "")
+                }
+            )
+            if (!isNicknameValid) {
+                Text(
+                    text = "Nickname shouldn't be empty",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            MySpacer(size = 8)
+            MyGenericTextField(
+                modifier = Modifier,
+                text = firstname,
+                hint = "First name",
+                onTextChanged = {
+                    firstname = it
+                    isFirstNameValid = (firstname != "")
+                }
+            )
+            if (!isFirstNameValid) {
+                Text(
+                    text = "First name shouldn't be empty",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            MySpacer(size = 8)
+            MyGenericTextField(
+                modifier = Modifier,
+                text = lastname,
+                hint = "Last name",
+                onTextChanged = {
+                    lastname = it
+                    isLastNameValid = lastname != ""
+                }
+            )
+            if (!isLastNameValid) {
+                Text(
+                    text = "Last name shouldn't be empty",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
             MySpacer(16)
             Text(
                 text = stringResource(R.string.login),
@@ -152,8 +203,8 @@ private fun ScreenBody(
 
         Button(
             onClick = {
-                if (isEmailValid && isPasswordValid && isSamePassword) {
-                    signUpViewModel.onSignUp(email, password, nickname)
+                if (isEmailValid && isPasswordValid && isSamePassword && isNicknameValid && isFirstNameValid && isLastNameValid) {
+                    signUpViewModel.onSignUp(email, password, nickname, firstname, lastname)
                 }
             },
             Modifier

@@ -44,11 +44,11 @@ class SignUpViewModel @Inject constructor(private val signUpUseCase: SignUpUseCa
     }
 
     //Observe events from UI and dispatch them, this are the methods called from the UI
-    fun onSignUp(email: String, password: String, nickname: String) {
+    fun onSignUp(email: String, password: String, nickname: String, firstname: String, lastname: String) {
         dispatch(SignUpIntent.Loading(isLoading = true))
         viewModelScope.launch {
             try {
-                val result = withContext(Dispatchers.IO) { signUpUseCase(email, password, nickname) }
+                val result = withContext(Dispatchers.IO) { signUpUseCase(email, password, nickname, firstname, lastname) }
                 if (result != null) {
                     withContext(Dispatchers.IO) { saveUserDataStore(result) }
                     dispatch(SignUpIntent.SignUp(result))

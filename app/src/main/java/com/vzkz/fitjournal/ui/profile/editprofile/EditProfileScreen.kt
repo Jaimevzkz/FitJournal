@@ -1,11 +1,11 @@
 package com.vzkz.fitjournal.ui.profile.editprofile
 
-import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -36,6 +36,7 @@ import com.vzkz.fitjournal.ui.components.MyAlertDialog
 import com.vzkz.fitjournal.ui.components.MyCircularProgressbar
 import com.vzkz.fitjournal.ui.components.MyConfirmDialog
 import com.vzkz.fitjournal.ui.components.MyGenericTextField
+import com.vzkz.fitjournal.ui.theme.FitJournalTheme
 
 @Destination
 @Composable
@@ -58,8 +59,7 @@ fun EditProfileScreen(
 
 @Composable
 private fun ScreenBody(
-    editProfileViewModel: EditProfileViewModel = hiltViewModel(),
-    onBackClicked: () -> Unit
+    editProfileViewModel: EditProfileViewModel, onBackClicked: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -70,37 +70,106 @@ private fun ScreenBody(
     ) {
         var nickname by remember { mutableStateOf("") }
         var readOnlyNickname by remember { mutableStateOf(true) }
+        var firstname by remember { mutableStateOf("") }
+        var readOnlyFirstname by remember { mutableStateOf(true) }
+        var lastname by remember { mutableStateOf("") }
+        var readOnlyLastname by remember { mutableStateOf(true) }
+        var age by remember { mutableStateOf("") }
+        var readOnlyAge by remember { mutableStateOf(true) }
+        var gender by remember { mutableStateOf("") }
+        var readOnlyGender by remember { mutableStateOf(true) }
+        var goal by remember { mutableStateOf("") }
+        var readOnlyGoal by remember { mutableStateOf(true) }
+        var weight by remember { mutableStateOf("") }
+        var readOnlyWeight by remember { mutableStateOf(true) }
+
         var firstTime by remember { mutableStateOf(true) }
+        if (firstTime) {
+            nickname = editProfileViewModel.state.user?.nickname ?: ""
+            firstname = editProfileViewModel.state.user?.firstname ?: ""
+            lastname = editProfileViewModel.state.user?.lastname ?: ""
+            age = editProfileViewModel.state.user?.age ?: ""
+            gender = editProfileViewModel.state.user?.gender ?: ""
+            goal = editProfileViewModel.state.user?.goal ?: ""
+            weight = editProfileViewModel.state.user?.weight ?: ""
+            firstTime = false
+        }
         var showAlertDialog by remember { mutableStateOf(false) }
         showAlertDialog = editProfileViewModel.state.error.isError
         var showConfirmDialog by remember { mutableStateOf(false) }
 
-        if (firstTime) {
-            nickname = editProfileViewModel.state.user?.nickname ?: ""
-            firstTime = false
-        }
+        //Top screen
         IconButton(modifier = Modifier.align(Alignment.TopStart), onClick = {
             onBackClicked()
         }) {
             Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "Cancel")
         }
 
-        Column(modifier = Modifier
-            .align(Alignment.TopCenter)
-            .padding(top = 48.dp)) {
-            MyGenericTextField(
-                modifier = Modifier,
-                hint = stringResource(R.string.nickname),
+        //Main screen
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 48.dp)
+        ) {
+            MyPrivateGenericTextfield(
                 text = nickname,
+                hint = stringResource(id = R.string.nickname),
+                readOnlyText = readOnlyNickname,
                 onTextChanged = { nickname = it },
-                readOnly = readOnlyNickname,
-                trailingIcon = {
-                    IconButton(onClick = { readOnlyNickname = !readOnlyNickname }) {
-                        Icon(imageVector = Icons.Filled.Edit, contentDescription = "Edit Icon")
-                    }
-                }
+                onReadOnlyChanged = { readOnlyNickname = !readOnlyNickname }
             )
+            Spacer(modifier = Modifier.weight(1f))
+            MyPrivateGenericTextfield(
+                text = firstname,
+                hint = stringResource(R.string.first_name),
+                readOnlyText = readOnlyFirstname,
+                onTextChanged = { firstname = it },
+                onReadOnlyChanged = { readOnlyFirstname = !readOnlyFirstname }
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            MyPrivateGenericTextfield(
+                text = lastname,
+                hint = stringResource(R.string.last_name),
+                readOnlyText = readOnlyLastname,
+                onTextChanged = { lastname = it },
+                onReadOnlyChanged = { readOnlyLastname = !readOnlyLastname }
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            MyPrivateGenericTextfield(
+                text = age,
+                hint = stringResource(id = R.string.age),
+                readOnlyText = readOnlyAge,
+                onTextChanged = { age = it },
+                onReadOnlyChanged = { readOnlyAge = !readOnlyAge }
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            MyPrivateGenericTextfield(
+                text = weight,
+                hint = stringResource(id = R.string.weight),
+                readOnlyText = readOnlyWeight,
+                onTextChanged = { weight = it },
+                onReadOnlyChanged = { readOnlyWeight = !readOnlyWeight }
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            MyPrivateGenericTextfield(
+                text = gender,
+                hint = stringResource(id = R.string.gender),
+                readOnlyText = readOnlyGender,
+                onTextChanged = { gender = it },
+                onReadOnlyChanged = { readOnlyGender = !readOnlyGender }
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            MyPrivateGenericTextfield(
+                text = goal,
+                hint = stringResource(id = R.string.goal),
+                readOnlyText = readOnlyGoal,
+                onTextChanged = { goal = it },
+                onReadOnlyChanged = { readOnlyGoal = !readOnlyGoal }
+            )
+            Spacer(modifier = Modifier.weight(3f))
         }
+
+        //Bottom screen
         Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -117,17 +186,42 @@ private fun ScreenBody(
         }
 
         MyConfirmDialog(
-            title = "Are you sure?",
-            text = "Profile changes like username may not be undoable",
+            title = stringResource(R.string.are_you_sure),
+            text = stringResource(R.string.profile_changes_like_username_may_not_be_undoable),
             onDismiss = {
                 readOnlyNickname = true
+                readOnlyFirstname = true
+                readOnlyLastname = true
+                readOnlyWeight = true
+                readOnlyAge = true
+                readOnlyGender = true
+                readOnlyGoal = true
+
                 showConfirmDialog = false
             },
             onConfirm = {
                 readOnlyNickname = true
+                readOnlyFirstname = true
+                readOnlyLastname = true
+                readOnlyWeight = true
+                readOnlyAge = true
+                readOnlyGender = true
+                readOnlyGoal = true
+
                 showConfirmDialog = false
-                if (editProfileViewModel.state.user != null) {
-                    val newUser = editProfileViewModel.state.user!!.copy(nickname = nickname)
+                if (editProfileViewModel.state.user != null &&
+                    nickname != "" && firstname != "" &&
+                    lastname != ""
+                ) {
+                    val newUser = editProfileViewModel.state.user!!.copy(
+                        nickname = nickname,
+                        firstname = firstname,
+                        lastname = lastname,
+                        age = (if (age != "") age else null),
+                        weight = (if (weight != "") weight else null),
+                        gender = (if (gender != "") gender else null),
+                        goal = (if (goal != "") goal else null)
+                    )
                     editProfileViewModel.onModifyUserData(
                         newUser = newUser,
                         oldUser = editProfileViewModel.state.user!!
@@ -140,26 +234,45 @@ private fun ScreenBody(
         MyAlertDialog( //Error Dialog
             title = stringResource(R.string.error_during_profile_modification),
             text = editProfileViewModel.state.error.errorMsg
-                ?: stringResource(R.string.username_already_in_use),
-            onDismiss = {
+                ?: stringResource(R.string.username_already_in_use), onDismiss = {
                 editProfileViewModel.onCloseDialog()
-            },
-            onConfirm = {
+            }, onConfirm = {
                 editProfileViewModel.onCloseDialog()
-            },
-            showDialog = showAlertDialog
+            }, showDialog = showAlertDialog
         )
     }
+}
+
+@Composable
+private fun MyPrivateGenericTextfield(
+    text: String,
+    hint: String,
+    readOnlyText: Boolean,
+    onTextChanged: (String) -> Unit,
+    onReadOnlyChanged: () -> Unit
+) {
+    MyGenericTextField(modifier = Modifier,
+        hint = hint,
+        text = text,
+        onTextChanged = { onTextChanged(it) },
+        readOnly = readOnlyText,
+        trailingIcon = {
+            IconButton(onClick = { onReadOnlyChanged() }) {
+                Icon(imageVector = Icons.Filled.Edit, contentDescription = "Edit Icon")
+            }
+        })
 }
 
 @Preview
 @Composable
 fun LightPreview() {
-    ScreenBody(){}
+    FitJournalTheme {
+        ScreenBody(hiltViewModel()) {}
+    }
 }
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun DarkPreview() {
-
-}
+//@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+//@Composable
+//fun DarkPreview() {
+//
+//}

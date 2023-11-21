@@ -8,6 +8,8 @@ interface DataStoreRepository {
 
     suspend fun getUser(): Flow<UserModel>
 
+    suspend fun cleanUser()
+
     suspend fun switchAppTheme()
 
     suspend fun getAppTheme(): Flow<Boolean>

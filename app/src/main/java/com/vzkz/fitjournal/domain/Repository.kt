@@ -6,7 +6,13 @@ interface Repository {
 
     suspend fun login(email: String, password: String): UserModel?
 
-    suspend fun signUp(email: String, password: String, nickname: String): UserModel?
+    suspend fun signUp(
+        email: String,
+        password: String,
+        nickname: String,
+        firstname: String,
+        lastname: String
+    ): UserModel?
 
     suspend fun logout()
 

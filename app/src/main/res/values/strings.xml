@@ -34,4 +34,13 @@
     <string name="error_during_profile_modification">Error during profile modification</string>
     <string name="confirm">Confirm</string>
     <string name="workout">Workout</string>
+    <string name="goal">goal</string>
+    <string name="gender">gender</string>
+    <string name="age">age</string>
+    <string name="weight">Weight</string>
+    <string name="passwords_must_coincide">Passwords must coincide.</string>
+    <string name="first_name">First name</string>
+    <string name="last_name">Last name</string>
+    <string name="are_you_sure">Are you sure?</string>
+    <string name="profile_changes_like_username_may_not_be_undoable">Profile changes like username may not be undoable</string>
 </resources>

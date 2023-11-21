@@ -1,13 +1,17 @@
 package com.vzkz.fitjournal.ui.profile
 
-import android.content.res.Configuration
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Settings
@@ -25,7 +29,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -40,6 +47,7 @@ import com.vzkz.fitjournal.destinations.ProfileScreenDestination
 import com.vzkz.fitjournal.destinations.SettingsScreenDestination
 import com.vzkz.fitjournal.ui.components.MySpacer
 import com.vzkz.fitjournal.ui.components.bottombar.MyBottomBar
+import com.vzkz.fitjournal.ui.theme.FitJournalTheme
 
 @Destination
 @Composable
@@ -70,14 +78,32 @@ fun ProfileScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScreenBody(
-    profileViewModel: ProfileViewModel = hiltViewModel(),
+    profileViewModel: ProfileViewModel,
     onBottomBarClicked: (DirectionDestinationSpec) -> Unit,
     onSettingsClicked: () -> Unit,
     onEditProfileClicked: () -> Unit
 ) {
+    val defaultVal = "- "
     var nickname by remember { mutableStateOf("") }
+    var firstname by remember { mutableStateOf("") }
+    var lastname by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var weight by remember { mutableStateOf("") }
+    var age by remember { mutableStateOf("") }
+    var gender by remember { mutableStateOf("") }
+    var goal by remember { mutableStateOf("") }
 
-    nickname = profileViewModel.state.user?.nickname ?: ""
+    val dummy = profileViewModel.state.user
+    nickname = profileViewModel.state.user?.nickname ?: defaultVal
+    firstname = profileViewModel.state.user?.firstname ?: defaultVal
+    lastname = profileViewModel.state.user?.lastname ?: defaultVal
+    email = profileViewModel.state.user?.email ?: defaultVal
+    weight = profileViewModel.state.user?.weight ?: defaultVal
+    age = profileViewModel.state.user?.age ?: defaultVal
+    gender = profileViewModel.state.user?.gender ?: defaultVal
+    goal = profileViewModel.state.user?.goal ?: defaultVal
+
+
     Scaffold(bottomBar = {
         MyBottomBar(
             currentDestination = ProfileScreenDestination,
@@ -89,6 +115,7 @@ private fun ScreenBody(
                 .background(MaterialTheme.colorScheme.background)
                 .fillMaxSize(), contentAlignment = Alignment.Center
         ) {
+            //Top screen
             Row(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -115,7 +142,112 @@ private fun ScreenBody(
                 }
 
             }
-            Text(text = nickname, style = MaterialTheme.typography.titleLarge)
+
+            //Main Screen
+            Column(
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 72.dp)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(shape = CircleShape),
+                        painter = painterResource(id = R.drawable.defaultprofile),
+                        contentDescription = "Profile image"
+                    )
+                    MySpacer(size = 16)
+                    Column {
+                        Text(
+                            text = firstname,
+                            style = MaterialTheme.typography.displaySmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = lastname,
+                            style = MaterialTheme.typography.displaySmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                }
+                MySpacer(size = 16)
+                Column(modifier = Modifier) {
+                    Spacer(modifier = Modifier.weight(1f))
+                    Row {
+                        Text(
+                            text = stringResource(R.string.nickname) +":",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text(text = nickname, style = MaterialTheme.typography.titleLarge)
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Row {
+                        Text(
+                            text = stringResource(R.string.email) +":",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text(text = email, style = MaterialTheme.typography.titleLarge)
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Row {
+                        Text(
+                            text = stringResource(R.string.weight) +":",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text(text = "$weight Kg", style = MaterialTheme.typography.titleLarge)
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Row {
+                        Text(
+                            text = stringResource(R.string.age) +":",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text(text = age, style = MaterialTheme.typography.titleLarge)
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Row {
+                        Text(
+                            text = stringResource(R.string.gender) +":",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text(text = gender, style = MaterialTheme.typography.titleLarge)
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Row {
+                        Text(
+                            text = stringResource(R.string.goal) +":",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text(text = goal, style = MaterialTheme.typography.titleLarge)
+                    }
+                    Spacer(modifier = Modifier.weight(3f))
+
+                }
+
+
+            }
+
+            //Bottom screen
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -134,11 +266,18 @@ private fun ScreenBody(
 @Preview
 @Composable
 fun LightPreview() {
-    ScreenBody(onBottomBarClicked = {}, onSettingsClicked = {}, onEditProfileClicked = {})
+    FitJournalTheme {
+        ScreenBody(
+            onBottomBarClicked = {},
+            onSettingsClicked = {},
+            onEditProfileClicked = {},
+            profileViewModel = hiltViewModel()
+        )
+    }
 }
 
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun DarkPreview() {
-
-}
+//@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+//@Composable
+//fun DarkPreview() {
+//
+//}
