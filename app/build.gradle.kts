@@ -131,5 +131,11 @@ dependencies {
     //Interceptor
     implementation("com.squareup.okhttp3:logging-interceptor:4.3.1")
 
+    //Room
+    val roomVersion = "2.6.0"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    annotationProcessor("androidx.room:room-compiler:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
+
 
 }

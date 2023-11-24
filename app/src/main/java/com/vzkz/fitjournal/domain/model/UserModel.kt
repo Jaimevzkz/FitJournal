@@ -9,5 +9,6 @@ data class UserModel(
     val weight: String? = null,
     val age: String? = null,
     val gender: String? = null,
-    val goal: String? = null
+    val goal: String? = null,
+    val workouts: List<WorkoutModel>?
 )

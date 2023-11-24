@@ -180,7 +180,7 @@ private fun MyExerciseCardView(exerciseModel: ExerciseModel) {
                 verticalArrangement = Arrangement.Top
             ) {
                 Text(
-                    text = exerciseModel.name,
+                    text = exerciseModel.exName,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                     style = MaterialTheme.typography.titleLarge
                 )

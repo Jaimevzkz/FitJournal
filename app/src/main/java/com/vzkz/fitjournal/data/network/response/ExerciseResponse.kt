@@ -9,5 +9,5 @@ data class ExerciseResponse(
     @SerializedName("difficulty") val difficulty: String,
     @SerializedName("instructions") val instructions: String
 ) {
-    fun toDomain(): ExerciseModel = ExerciseModel(name = name, muscle = muscle, difficulty = difficulty, instructions = instructions)
+    fun toDomain(): ExerciseModel = ExerciseModel(exName = name, muscle = muscle, difficulty = difficulty, instructions = instructions)
 }
