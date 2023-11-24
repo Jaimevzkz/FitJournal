@@ -6,11 +6,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -18,44 +20,59 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material3.Button
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.vzkz.fitjournal.R
+import com.vzkz.fitjournal.destinations.WorkoutScreenDestination
+import com.vzkz.fitjournal.domain.model.ExerciseModel
+import com.vzkz.fitjournal.ui.components.MyCircularProgressbar
 import com.vzkz.fitjournal.ui.components.MyGenericTextField
 import com.vzkz.fitjournal.ui.components.MySpacer
 import com.vzkz.fitjournal.ui.theme.FitJournalTheme
 
 @Destination
 @Composable
-fun SearchExerciseScreen(navigator: DestinationsNavigator) {
-    ScreenBody()
+fun SearchExerciseScreen(
+    navigator: DestinationsNavigator,
+    searchExerciseViewModel: SearchExerciseViewModel = hiltViewModel()
+) {
+    ScreenBody(searchExerciseViewModel = searchExerciseViewModel, onBackCLicked = {
+        navigator.navigate(WorkoutScreenDestination)
+    })
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-private fun ScreenBody() {
+private fun ScreenBody(searchExerciseViewModel: SearchExerciseViewModel, onBackCLicked: () -> Unit) {
     Scaffold(topBar = {
-        TopAppBar(title = {}, navigationIcon = {
-            IconButton(onClick = { /*TODO*/ }) {
-                Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Nav back")
-            }
-        })
+        CenterAlignedTopAppBar(
+            title = { Text(text = stringResource(R.string.search_exercise)) },
+            navigationIcon = {
+                IconButton(onClick = { onBackCLicked() }) {
+                    Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Nav back")
+                }
+            })
     }) { paddingValues ->
         Box(
             modifier = Modifier
@@ -64,6 +81,11 @@ private fun ScreenBody() {
                 .background(MaterialTheme.colorScheme.background)
         ) {
             var searchContent: String by remember { mutableStateOf("") }
+            var exerciseList: List<ExerciseModel> by remember { mutableStateOf(emptyList()) }
+            val keyboardController = LocalSoftwareKeyboardController.current
+
+            exerciseList = searchExerciseViewModel.state.exerciseList ?: emptyList()
+
             Column(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
@@ -72,11 +94,17 @@ private fun ScreenBody() {
                 verticalArrangement = Arrangement.Center
             ) {
                 MyGenericTextField(
-                    modifier = Modifier,
-                    hint = "Search exercise",
+                    modifier = Modifier.weight(1f),
+                    hint = "",
                     text = searchContent,
                     trailingIcon = {
-                        IconButton(onClick = { /*TODO*/ }) {
+                        IconButton(onClick = {
+                            if (searchContent != "") {
+                                keyboardController?.hide()
+                                searchExerciseViewModel.onSearchByName(searchContent)
+
+                            }
+                        }) {
                             Icon(imageVector = Icons.Filled.Search, contentDescription = "")
                         }
                     },
@@ -84,36 +112,50 @@ private fun ScreenBody() {
                         searchContent = it
                     })
 
-                MySpacer(size = 8)
+                MySpacer(size = 4)
 
-                LazyColumn(modifier = Modifier) {
-                    item { MyExerciseCardView() }
-                    item { MyExerciseCardView() }
-                    item { MyExerciseCardView() }
-                    item { MyExerciseCardView() }
-                    item { MyExerciseCardView() }
-                    item { MyExerciseCardView() }
-                    item { MyExerciseCardView() }
+                Text(
+                    text = stringResource(R.string.introduce_the_name_of_the_exercise_to_search),
+                    style = MaterialTheme.typography.labelMedium
+                )
+
+                MySpacer(size = 4)
+
+                if (exerciseList.isNotEmpty()) {
+                    LazyColumn(modifier = Modifier.weight(10f)) {
+                        items(exerciseList) { exercise ->
+                            MyExerciseCardView(exerciseModel = exercise)
+                        }
+                    }
+                } else if (searchExerciseViewModel.state.loading) MyCircularProgressbar(Modifier.weight(10f))
+                else Spacer(modifier = Modifier.weight(10f))
+
+                Button(
+                    onClick = { /*TODO*/ },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .padding(bottom = 10.dp, top = 10.dp)
+                        .weight(1f)
+                        .shadow(elevation = 20.dp, shape = RoundedCornerShape(20.dp))
+                ) {
+                    Text(text = "Create")
                 }
-
             }
 
-            Button(
-                onClick = { /*TODO*/ }, modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(20.dp)
-                    .fillMaxWidth()
-            ) {
-                Text(text = "Create")
+            if (searchExerciseViewModel.state.noResults) {
+                Text(
+                    text = stringResource(R.string.no_exercises_found_with_that_name),
+                    modifier = Modifier.align(Alignment.Center),
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
-
         }
-
     }
 }
 
 @Composable
-private fun MyExerciseCardView() {
+private fun MyExerciseCardView(exerciseModel: ExerciseModel) {
     var expand by remember { mutableStateOf(false) }
     var added by remember { mutableStateOf(false) }
     Box(
@@ -138,28 +180,28 @@ private fun MyExerciseCardView() {
                 verticalArrangement = Arrangement.Top
             ) {
                 Text(
-                    text = "Incline Hammer Curls",
+                    text = exerciseModel.name,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                     style = MaterialTheme.typography.titleLarge
                 )
                 MySpacer(size = 8)
-                Row {
-                    Text(
-                        text = "Muscle: Biceps",
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    MySpacer(size = 4)
-                    Text(
-                        text = "Difficulty: Beginner",
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+                Text(
+                    text = stringResource(R.string.muscle) + exerciseModel.muscle,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+                MySpacer(size = 4)
+                Text(
+                    text = stringResource(R.string.difficulty) + exerciseModel.difficulty,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.align(Alignment.Start)
+                )
                 if (expand) {
                     MySpacer(size = 8)
                     Text(
-                        text = "Instructions: Seat yourself on an incline bench with a dumbbell in each hand. You should pressed firmly against he back with your feet together. Allow the dumbbells to hang straight down at your side, holding them with a neutral grip. This will be your starting position. Initiate the movement by flexing at the elbow, attempting to keep the upper arm stationary. Continue to the top of the movement and pause, then slowly return to the start position.",
+                        text = stringResource(R.string.instructions) + exerciseModel.instructions,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -170,9 +212,12 @@ private fun MyExerciseCardView() {
             IconButton(
                 onClick = {
                     if (!added) {
-                        /*TODO*/
+                        /*TODO add exercise*/
+                        added = true
+                    } else {
+                        /*TODO delete exercise*/
+                        added = false
                     }
-                    added = true
 
                 },
                 modifier = Modifier
@@ -195,7 +240,7 @@ private fun MyExerciseCardView() {
 @Composable
 fun LightPreview() {
     FitJournalTheme {
-        ScreenBody()
+        ScreenBody(hiltViewModel(), onBackCLicked = {})
     }
 }
 

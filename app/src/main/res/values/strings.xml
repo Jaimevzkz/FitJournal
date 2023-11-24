@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">FitJournal</string>
+    <string name="app_name">Fit Journal</string>
     <string name="login">Login</string>
     <string name="signup">Sign up</string>
     <string name="email">Email</string>
@@ -43,4 +43,12 @@
     <string name="last_name">Last name</string>
     <string name="are_you_sure">Are you sure?</string>
     <string name="profile_changes_like_username_may_not_be_undoable">Profile changes like username may not be undoable</string>
+    <string name="an_error_occurred_while_using_apiservice">An error occurred while using apiService</string>
+    <string name="add_workout">Add workout</string>
+    <string name="search_exercise">Search exercise</string>
+    <string name="introduce_the_name_of_the_exercise_to_search">Introduce the name of the exercise to search</string>
+    <string name="no_exercises_found_with_that_name">No exercises found with that name</string>
+    <string name="muscle">"Muscle: "</string>
+    <string name="difficulty">"Difficulty: "</string>
+    <string name="instructions">"Instructions: "</string>
 </resources>

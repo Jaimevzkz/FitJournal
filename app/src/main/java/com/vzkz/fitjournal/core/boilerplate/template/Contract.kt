@@ -6,12 +6,12 @@ import com.vzkz.fitjournal.core.boilerplate.State
 
 data class tState(
     val loading: Boolean,
-//    val counter: Int,
+    val error: Error
 ) : State {
     companion object {
         val initial: tState = tState(
             loading = false,
-//            counter = 0,
+            error = Error(false, null)
         )
     }
 }
@@ -19,5 +19,6 @@ data class tState(
 data class Error(val isError: Boolean, val errorMsg: String?)
 
 sealed class tIntent: Intent {
-    data class Loading(val isLoading: Boolean): tIntent()
+    data object Loading: tIntent()
+    data class Error(val errorMsg: String): tIntent()
 }

@@ -1,18 +1,22 @@
 package com.vzkz.fitjournal.data
 
 import android.content.Context
+import android.util.Log
 import com.google.firebase.auth.FirebaseUser
 import com.vzkz.fitjournal.R
 import com.vzkz.fitjournal.data.firebase.AuthService
 import com.vzkz.fitjournal.data.firebase.FirestoreService
+import com.vzkz.fitjournal.data.network.ExerciseApiService
 import com.vzkz.fitjournal.domain.Repository
+import com.vzkz.fitjournal.domain.model.ExerciseModel
 import com.vzkz.fitjournal.domain.model.UserModel
 import javax.inject.Inject
 
 class RepositoryImpl @Inject constructor(
     private val authService: AuthService,
     private val firestoreService: FirestoreService,
-    private val context: Context
+    private val context: Context,
+    private val exerciseApiService: ExerciseApiService
 ) : Repository {
 
     override suspend fun login(email: String, password: String): UserModel? {
@@ -84,6 +88,22 @@ class RepositoryImpl @Inject constructor(
             if (e.message == "NF") throw Exception(context.getString(R.string.error_modifying_user_data_the_user_wasn_t_modified))
             else throw Exception(context.getString(R.string.username_already_in_use_couldn_t_modify_user))
         }
+    }
+
+    override suspend fun getExercisesByName(name: String): List<ExerciseModel>? {
+        runCatching {
+            exerciseApiService.getExerciseByName(name)
+        }
+            .onSuccess {
+                return it.map { exResponseItem ->
+                    exResponseItem.toDomain()
+                }
+            }
+            .onFailure {
+                Log.i("Jaime", "An error occurred while using apiService, ${it.message}")
+                throw Exception(context.getString(R.string.an_error_occurred_while_using_apiservice))
+            }
+        return null
     }
 
     private fun FirebaseUser.toDomain(userData: UserModel): UserModel {

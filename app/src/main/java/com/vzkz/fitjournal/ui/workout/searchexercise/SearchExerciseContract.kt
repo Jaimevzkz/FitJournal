@@ -2,22 +2,31 @@ package com.vzkz.fitjournal.ui.workout.searchexercise
 
 import com.vzkz.fitjournal.core.boilerplate.Intent
 import com.vzkz.fitjournal.core.boilerplate.State
+import com.vzkz.fitjournal.domain.model.ExerciseModel
 
 
-data class tState(
+data class SearchExerciseState(
     val loading: Boolean,
-//    val counter: Int,
+    val exerciseList: List<ExerciseModel>?,
+    val error: Error,
+    val noResults: Boolean
+
 ) : State {
     companion object {
-        val initial: tState = tState(
+        val initial: SearchExerciseState = SearchExerciseState(
             loading = false,
-//            counter = 0,
+            exerciseList = null,
+            error = Error(false, null),
+            noResults = false
         )
     }
 }
 
 data class Error(val isError: Boolean, val errorMsg: String?)
 
-sealed class tIntent: Intent {
-    data class Loading(val isLoading: Boolean): tIntent()
+sealed class SearchExerciseIntent : Intent {
+    data object Loading : SearchExerciseIntent()
+    data class SubmitSearch(val exList: List<ExerciseModel>) : SearchExerciseIntent()
+    data object NoResults: SearchExerciseIntent()
+    data class Error(val errorMsg: String): SearchExerciseIntent()
 }

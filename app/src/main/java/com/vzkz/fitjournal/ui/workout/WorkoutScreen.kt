@@ -26,11 +26,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.spec.DirectionDestinationSpec
+import com.vzkz.fitjournal.R
+import com.vzkz.fitjournal.destinations.SearchExerciseScreenDestination
 import com.vzkz.fitjournal.destinations.WorkoutScreenDestination
 import com.vzkz.fitjournal.ui.components.MySpacer
 import com.vzkz.fitjournal.ui.components.bottombar.MyBottomBar
@@ -39,12 +42,18 @@ import com.vzkz.fitjournal.ui.theme.FitJournalTheme
 @Destination
 @Composable
 fun WorkoutScreen(navigator: DestinationsNavigator) {
-    ScreenBody { navigator.navigate(it) }
+    ScreenBody(
+        onBottomBarClicked = { navigator.navigate(it) },
+        onAddWorkOutClicked = { navigator.navigate(SearchExerciseScreenDestination) }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ScreenBody(onBottomBarClicked: (DirectionDestinationSpec) -> Unit) {
+private fun ScreenBody(
+    onBottomBarClicked: (DirectionDestinationSpec) -> Unit,
+    onAddWorkOutClicked: () -> Unit
+) {
     Scaffold(
         bottomBar = {
             MyBottomBar(
@@ -73,7 +82,7 @@ private fun ScreenBody(onBottomBarClicked: (DirectionDestinationSpec) -> Unit) {
                     MyCardViewWorkout()
                 }
                 item {
-                    MyAddWorkoutCardView()
+                    MyAddWorkoutCardView { onAddWorkOutClicked() }
                 }
 
             }
@@ -141,7 +150,7 @@ private fun MyCardViewWorkout() {
 }
 
 @Composable
-private fun MyAddWorkoutCardView() {
+private fun MyAddWorkoutCardView(onAddWorkOutClicked: () -> Unit) {
     Box(
         modifier = Modifier
             .height(150.dp)
@@ -164,20 +173,20 @@ private fun MyAddWorkoutCardView() {
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Add workout",
+                    text = stringResource(R.string.add_workout),
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                     style = MaterialTheme.typography.titleLarge
                 )
             }
 
             IconButton(
-                onClick = { /*TODO*/ }, modifier = Modifier
+                onClick = { onAddWorkOutClicked() }, modifier = Modifier
                     .weight(2f)
                     .size(30.dp)
             ) {
                 Icon(
                     imageVector = Icons.Filled.Add,
-                    contentDescription = "Go to Workout",
+                    contentDescription = "Add Workout",
                     tint = MaterialTheme.colorScheme.onTertiaryContainer,
                     modifier = Modifier.size(30.dp)
                 )
@@ -191,7 +200,7 @@ private fun MyAddWorkoutCardView() {
 @Composable
 fun LightPreview() {
     FitJournalTheme {
-        ScreenBody(onBottomBarClicked = {})
+        ScreenBody(onBottomBarClicked = {}, onAddWorkOutClicked = {})
     }
 }
 

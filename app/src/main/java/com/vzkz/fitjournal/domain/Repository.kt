@@ -1,5 +1,6 @@
 package com.vzkz.fitjournal.domain
 
+import com.vzkz.fitjournal.domain.model.ExerciseModel
 import com.vzkz.fitjournal.domain.model.UserModel
 
 interface Repository {
@@ -19,5 +20,7 @@ interface Repository {
     fun isUserLogged(): Boolean
 
     suspend fun modifyUserData(oldUser: UserModel, newUser: UserModel)
+
+    suspend fun getExercisesByName(name: String): List<ExerciseModel>?
 
 }

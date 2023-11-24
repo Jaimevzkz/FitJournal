@@ -13,7 +13,7 @@ import com.vzkz.fitjournal.R
 @Composable
 fun MyImageLogo(modifier: Modifier = Modifier) {
     Image(
-        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+        painter = painterResource(id = R.drawable.appicon),
         contentDescription = "App Logo",
         modifier = modifier.size(90.dp),
         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)

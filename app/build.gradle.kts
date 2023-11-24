@@ -27,17 +27,23 @@ android {
     }
 
     buildTypes {
-        release {
+        getByName("release") {
             isMinifyEnabled = false
+            buildFeatures.buildConfig = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "BASE_URL", "\"https://api.api-ninjas.com/v1/exercises/\"") //This would be the url used in production
+
         }
 
         getByName("debug") {
             applicationIdSuffix = ".debug"
+            isMinifyEnabled = false
             isDebuggable = true
+            android.buildFeatures.buildConfig = true
+            buildConfigField("String", "BASE_URL", "\"https://api.api-ninjas.com/v1/exercises/\"") //This would be the url used in debug
         }
     }
     compileOptions {
@@ -117,6 +123,13 @@ dependencies {
 
     //DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    //Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    //Interceptor
+    implementation("com.squareup.okhttp3:logging-interceptor:4.3.1")
 
 
 }
