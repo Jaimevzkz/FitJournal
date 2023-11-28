@@ -1,58 +1,74 @@
 package com.vzkz.fitjournal.data.firebase
 
 import android.util.Log
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import com.vzkz.fitjournal.data.firebase.Constants.USERS_COLLECTION
-import com.vzkz.fitjournal.data.firebase.Constants.UserData.AGE
-import com.vzkz.fitjournal.data.firebase.Constants.UserData.EMAIL
-import com.vzkz.fitjournal.data.firebase.Constants.UserData.FIRSTNAME
-import com.vzkz.fitjournal.data.firebase.Constants.UserData.GENDER
-import com.vzkz.fitjournal.data.firebase.Constants.UserData.GOAL
-import com.vzkz.fitjournal.data.firebase.Constants.UserData.LASTNAME
-import com.vzkz.fitjournal.data.firebase.Constants.UserData.NICKNAME
-import com.vzkz.fitjournal.data.firebase.Constants.UserData.WEIGHT
+import com.google.firebase.firestore.SetOptions
+import com.vzkz.fitjournal.domain.model.Constants.DIFFICULTY
+import com.vzkz.fitjournal.domain.model.Constants.DURATION
+import com.vzkz.fitjournal.domain.model.Constants.EXCOUNT
+import com.vzkz.fitjournal.domain.model.Constants.EXERCISES
+import com.vzkz.fitjournal.domain.model.Constants.EXNAME
+import com.vzkz.fitjournal.domain.model.Constants.EXORDER
+import com.vzkz.fitjournal.domain.model.Constants.INSTRUCTIONS
+import com.vzkz.fitjournal.domain.model.Constants.MUSCLE
+import com.vzkz.fitjournal.domain.model.Constants.NICKNAME
+import com.vzkz.fitjournal.domain.model.Constants.REPS
+import com.vzkz.fitjournal.domain.model.Constants.REST
+import com.vzkz.fitjournal.domain.model.Constants.SETNUM
+import com.vzkz.fitjournal.domain.model.Constants.SETXREPXWEIGHT
+import com.vzkz.fitjournal.domain.model.Constants.USERS_COLLECTION
+import com.vzkz.fitjournal.domain.model.Constants.WEIGHT
+import com.vzkz.fitjournal.domain.model.Constants.WORKOUTS
+import com.vzkz.fitjournal.domain.model.Constants.WOTNAME
+import com.vzkz.fitjournal.domain.model.Constants.WOTORDER
+import com.vzkz.fitjournal.domain.model.ExerciseModel
+import com.vzkz.fitjournal.domain.model.Exercises
+import com.vzkz.fitjournal.domain.model.SetXrepXweight
 import com.vzkz.fitjournal.domain.model.UserModel
+import com.vzkz.fitjournal.domain.model.WorkoutModel
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-private object Constants {
-    const val USERS_COLLECTION = "users"
 
-    object UserData {
-        const val NICKNAME = "nickname"
-        const val EMAIL = "email"
-        const val FIRSTNAME = "firstname"
-        const val LASTNAME = "lastname"
-        const val WEIGHT = "weight"
-        const val AGE = "age"
-        const val GENDER = "gender"
-        const val GOAL = "goal"
-    }
-}
+class FirestoreService @Inject constructor(firestore: FirebaseFirestore) {
 
-
-class FirestoreService @Inject constructor(private val firestore: FirebaseFirestore) {
+    private val usersCollection = firestore.collection(USERS_COLLECTION)
     suspend fun userExists(nickname: String): Boolean {
-        val userInfo = firestore.collection(USERS_COLLECTION).whereEqualTo(NICKNAME, nickname).get().await()
+        val userInfo = usersCollection.whereEqualTo(NICKNAME, nickname).get().await()
         return !userInfo.isEmpty
     }
 
     fun insertUser(userData: UserModel?) {
         if (userData == null) throw Exception()
-        var user = hashMapOf(
-            NICKNAME to userData.nickname,
-            FIRSTNAME to userData.firstname,
-            LASTNAME to userData.lastname
-        )
-        if (userData.email != null) user[EMAIL] = userData.email
-        if (userData.weight != null) user[WEIGHT] = userData.weight
-        if (userData.age != null) user[AGE] = userData.age
-        if (userData.gender != null) user[GENDER] = userData.gender
-        if (userData.goal != null) user[GOAL] = userData.goal
+        val userDocument = usersCollection.document(userData.uid)
+        val user = userData.toMap()
 
-        //At this point, we know for a fact that nickname is unique
-        firestore.collection(USERS_COLLECTION).document(userData.uid).set(user)
+        if (userData.workouts != null) {
+            val workoutDocumentRef = userDocument.collection(WORKOUTS)
+            for (workout in userData.workouts!!) {
+                val docWorkoutDocumentRef = workoutDocumentRef.document()
+                docWorkoutDocumentRef.set(workout.toMap())
+
+                val exerciseListRef = docWorkoutDocumentRef.collection(EXERCISES)
+                for (exercise in workout.exercises) {
+                    val docExListRef = exerciseListRef.document()
+                    docExListRef.set(exercise.exData.toMap(), SetOptions.merge())
+                    docExListRef.set(exercise.toMap(), SetOptions.merge())
+
+                    val indExerciseRef = docExListRef.collection(
+                        SETXREPXWEIGHT
+                    )
+                    for (indExercise in exercise.setXrepXweight) {
+                        indExerciseRef.document(indExercise.exNum).set(indExercise.toMap())
+                    }
+                }
+
+            }
+
+        }
+
+        // We use SetOptions.merge() to add the user without overriding other potential fields
+        userDocument.set(user, SetOptions.merge())
             .addOnSuccessListener {
                 Log.i("Jaime", "Success inserting in database")
             }
@@ -62,60 +78,86 @@ class FirestoreService @Inject constructor(private val firestore: FirebaseFirest
 
     }
 
-    suspend fun getUserData(uid: String): UserModel { //returns nickname //TO test
-        val documentSnapshot: DocumentSnapshot
-        try {
-            documentSnapshot = firestore.collection(USERS_COLLECTION)
-                .document(uid)
-                .get()
-                .await()
-            if (documentSnapshot.exists()) {
-                val nickname : String = documentSnapshot.data?.get(NICKNAME).toString()
-                val firstname : String = documentSnapshot.data?.get(FIRSTNAME).toString()
-                val lastname : String = documentSnapshot.data?.get(LASTNAME).toString()
-                var weight : String? = documentSnapshot.data?.get(WEIGHT).toString()
-                if(weight == "null") weight = null
-                var age : String? = documentSnapshot.data?.get(AGE).toString()
-                if(age == "null") age = null
-                var gender : String? = documentSnapshot.data?.get(GENDER).toString()
-                if(gender == "null") gender = null
-                var goal : String?= documentSnapshot.data?.get(GOAL).toString()
-                if(goal == "null") goal = null
-                return UserModel(
-                    uid = uid,
-                    nickname = nickname,
-                    email = null,
-                    firstname = firstname,
-                    lastname = lastname,
-                    weight = weight,
-                    age = age,
-                    gender = gender,
-                    goal = goal
+    suspend fun getUserData(uid: String): UserModel {
+        return try {
+            val userDocumentRef = usersCollection.document(uid)
+
+            val userModel: UserModel =
+                userDocumentRef.get().await().toObject(UserModel::class.java)
+                    ?: throw Exception("CF")
+
+            val workoutsCollectionRef = userDocumentRef.collection(WORKOUTS)
+            val workoutDocuments = workoutsCollectionRef.get().await()
+
+            val workoutsList = workoutDocuments.map { workoutDocument ->
+                val exercisesCollectionRef =
+                    workoutDocument.reference.collection(EXERCISES)
+
+                val exerciseDocuments = exercisesCollectionRef.get().await()
+
+                val exerciseList = exerciseDocuments.map { exerciseDocument ->
+                    val repCollectionRef =
+                        exerciseDocument.reference.collection(SETXREPXWEIGHT)
+
+                    val repDocuments = repCollectionRef.get().await()
+
+                    val repList = repDocuments.map { repDocument ->
+                        SetXrepXweight(
+                            exNum = repDocument.id,
+                            reps = repDocument.getLong(REPS)?.toInt() ?: -1,
+                            weight = repDocument.getLong(WEIGHT)?.toInt() ?: -1
+                        )
+                    }
+
+                    val exData = ExerciseModel(
+                        exName = exerciseDocument.getString(EXNAME) ?: "error",
+                        muscle = exerciseDocument.getString(MUSCLE) ?: "error",
+                        difficulty = exerciseDocument.getString(DIFFICULTY) ?: "error",
+                        instructions = exerciseDocument.getString(INSTRUCTIONS) ?: "error",
+                    )
+
+                    Exercises(
+                        rest = exerciseDocument.getLong(REST)?.toInt() ?: -1,
+                        exData = exData,
+                        setNum = exerciseDocument.getLong(SETNUM)?.toInt() ?: -1,
+                        setXrepXweight = repList,
+                        exOrder = exerciseDocument.getLong(EXORDER)?.toInt() ?: -1,
+                    )
+                }
+
+                WorkoutModel(
+                    wotName = workoutDocument.getString(WOTNAME) ?: "error",
+                    duration = workoutDocument.getLong(DURATION)?.toInt() ?: -1,
+                    exCount = workoutDocument.getLong(EXCOUNT)?.toInt() ?: -1,
+                    wotOrder = workoutDocument.getLong(WOTORDER)?.toInt() ?: -1,
+                    exercises = exerciseList.sortedBy { it.exOrder }
                 )
-            } else throw Exception("NU")
+            }
+
+            userModel.workouts = workoutsList.sortedBy { it.wotOrder }
+            userModel
         } catch (e: Exception) {
             Log.e("Jaime", "error getting doc. ${e.message}")
-            throw Exception("NF")
+            when (e.message) {
+                "CF" -> throw Exception("CF")
+                "NU" -> throw Exception("NU")
+                else -> throw Exception("NF")
+            }
         }
     }
 
     suspend fun modifyUserData(oldUser: UserModel, newUser: UserModel) {
-        val newUserObject = hashMapOf(
-            NICKNAME to newUser.nickname,
-            FIRSTNAME to newUser.firstname,
-            LASTNAME to newUser.lastname
-        )
-        if (newUser.email != null) newUserObject[EMAIL] = newUser.email
-        if (newUser.weight != null) newUserObject[WEIGHT] = newUser.weight
-        if (newUser.age != null) newUserObject[AGE] = newUser.age
-        if (newUser.gender != null) newUserObject[GENDER] = newUser.gender
-        if (newUser.goal != null) newUserObject[GOAL] = newUser.goal
-
         if ((oldUser.nickname != newUser.nickname) && (userExists(newUser.nickname))) throw Exception()
 
-        firestore.collection(USERS_COLLECTION).document(oldUser.uid)
-            .update(newUserObject as Map<String, String>).addOnSuccessListener {
-            Log.i("Jaime", "Data updated succesfully")
+        // Gets the reference to the user document
+        val userDocumentReference = usersCollection.document(oldUser.uid)
+
+        // Casts the new UserModel to map in order to update only the needed fields
+        val newUserMap = newUser.toMap()
+
+        // Updates firestore data
+        userDocumentReference.update(newUserMap).addOnSuccessListener {
+            Log.i("Jaime", "Data updated successfully")
         }.addOnFailureListener {
             Log.i("Jaime", "Error updating data")
             throw Exception("NF")

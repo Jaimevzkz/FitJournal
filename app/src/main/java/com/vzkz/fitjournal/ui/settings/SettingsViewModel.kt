@@ -2,9 +2,7 @@ package com.vzkz.fitjournal.ui.settings
 
 import androidx.lifecycle.viewModelScope
 import com.vzkz.fitjournal.core.boilerplate.BaseViewModel
-import com.vzkz.fitjournal.domain.usecases.ThemeDSUseCase
-import com.vzkz.fitjournal.ui.settings.SettingsIntent
-import com.vzkz.fitjournal.ui.settings.SettingsState
+import com.vzkz.fitjournal.domain.usecases.datapersistence.ThemeDSUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

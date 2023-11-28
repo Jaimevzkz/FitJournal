@@ -10,4 +10,8 @@ data class UserEntity(
     @PrimaryKey
     @ColumnInfo("nickname") val nickname: String,
     @ColumnInfo("userData") val userData: UserModel
-)
+){
+    fun toDomain(): UserModel{
+        return this.userData
+    }
+}

@@ -13,7 +13,7 @@ interface Repository {
         nickname: String,
         firstname: String,
         lastname: String
-    ): UserModel?
+    ): UserModel
 
     suspend fun logout()
 
@@ -22,5 +22,9 @@ interface Repository {
     suspend fun modifyUserData(oldUser: UserModel, newUser: UserModel)
 
     suspend fun getExercisesByName(name: String): List<ExerciseModel>?
+
+    suspend fun getUserFromRoom(nickname: String): UserModel
+
+    suspend fun insertUserInRoom(userModel: UserModel)
 
 }

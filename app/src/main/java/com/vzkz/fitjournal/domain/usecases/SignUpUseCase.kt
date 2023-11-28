@@ -5,7 +5,7 @@ import com.vzkz.fitjournal.domain.model.UserModel
 import javax.inject.Inject
 
 class SignUpUseCase @Inject constructor(private val repository: Repository) {
-    suspend operator fun invoke(email: String, password: String, nickname: String, firstname: String, lastname: String): UserModel? {
+    suspend operator fun invoke(email: String, password: String, nickname: String, firstname: String, lastname: String): UserModel {
         return repository.signUp(email, password, nickname, firstname, lastname)
     }
 }

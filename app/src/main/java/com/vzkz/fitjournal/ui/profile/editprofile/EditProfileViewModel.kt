@@ -1,12 +1,14 @@
 package com.vzkz.fitjournal.ui.profile.editprofile
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.vzkz.fitjournal.core.boilerplate.BaseViewModel
 import com.vzkz.fitjournal.domain.model.UserModel
-import com.vzkz.fitjournal.domain.usecases.GetUserDataStoreUseCase
+import com.vzkz.fitjournal.domain.usecases.datapersistence.GetUserPersistenceUseCase
 import com.vzkz.fitjournal.domain.usecases.ModifyUserDataUseCase
-import com.vzkz.fitjournal.domain.usecases.SaveUserDataStoreUseCase
+import com.vzkz.fitjournal.domain.usecases.datapersistence.SaveUserPersistenceUseCase
 import com.vzkz.fitjournal.ui.profile.Error
+import com.vzkz.fitjournal.ui.profile.ProfileIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -16,9 +18,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
-    private val getUserDataStoreUseCase: GetUserDataStoreUseCase,
+    private val getUserPersistenceUseCase: GetUserPersistenceUseCase,
     private val modifyUserDataUseCase: ModifyUserDataUseCase,
-    private val saveUserDataStoreUseCase: SaveUserDataStoreUseCase
+    private val saveUserPersistenceUseCase: SaveUserPersistenceUseCase
 ) :
     BaseViewModel<EditProfileState, EditProfileIntent>(EditProfileState.initial) {
 
@@ -30,41 +32,50 @@ class EditProfileViewModel @Inject constructor(
             is EditProfileIntent.Error -> state.copy(
                 error = Error(true, intent.errorMsg),
                 success = false,
-                loading = false
+                loading = false,
+                start = false
             )
 
-            is EditProfileIntent.SetUserFromDS -> state.copy(
+            is EditProfileIntent.SetUserFromPersistence -> state.copy(
                 user = intent.user,
                 success = false,
-                loading = false
+                loading = false,
+                start = true
             )
 
             EditProfileIntent.CloseError -> state.copy(
                 error = Error(false, null),
                 success = false,
-                loading = false
+                loading = false,
+                start = false
             )
 
             EditProfileIntent.Success -> state.copy(
                 error = Error(false, null),
                 success = true,
-                loading = false
+                loading = false,
+                start = false
             )
 
             is EditProfileIntent.Loading -> state.copy(
                 success = false,
-                loading = true
+                loading = true,
+                start = false
             )
         }
     }
 
     //Observe events from UI and dispatch them, this are the methods called from the UI
     fun onInit() {
-        dispatch(EditProfileIntent.Loading)
-        viewModelScope.launch {
-            getUserDataStoreUseCase().collect { user ->
-                if (user.uid == "") dispatch(EditProfileIntent.Error("Couldn't find user in DataStore"))
-                else dispatch(EditProfileIntent.SetUserFromDS(user))
+        viewModelScope.launch(Dispatchers.IO) {
+            try{
+                viewModelScope.launch(Dispatchers.IO) {
+                    val user = getUserPersistenceUseCase()
+                    if (user.uid == "") dispatch(EditProfileIntent.Error("Couldn't find user in DataStore/room"))
+                    else dispatch(EditProfileIntent.SetUserFromPersistence(user))
+                }
+            } catch(e: Exception){
+                Log.e("Jaime", "Error when calling persistence from initEditPorfile, ${e.message}")
             }
         }
     }
@@ -75,7 +86,7 @@ class EditProfileViewModel @Inject constructor(
             try {
                 withContext(Dispatchers.IO){
                     modifyUserDataUseCase(newUser = newUser, oldUser = oldUser)
-                    saveUserDataStoreUseCase(newUser)
+                    saveUserPersistenceUseCase(newUser)
                 }
                 dispatch(EditProfileIntent.Success)
 

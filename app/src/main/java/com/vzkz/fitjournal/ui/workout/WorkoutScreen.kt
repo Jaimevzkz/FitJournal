@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -27,32 +28,41 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.spec.DirectionDestinationSpec
 import com.vzkz.fitjournal.R
+import com.vzkz.fitjournal.destinations.ExListScreenDestination
 import com.vzkz.fitjournal.destinations.SearchExerciseScreenDestination
 import com.vzkz.fitjournal.destinations.WorkoutScreenDestination
+import com.vzkz.fitjournal.ui.components.MyCircularProgressbar
 import com.vzkz.fitjournal.ui.components.MySpacer
 import com.vzkz.fitjournal.ui.components.bottombar.MyBottomBar
-import com.vzkz.fitjournal.ui.theme.FitJournalTheme
 
 @Destination
 @Composable
-fun WorkoutScreen(navigator: DestinationsNavigator) {
+fun WorkoutScreen(
+    navigator: DestinationsNavigator,
+    workoutViewModel: WorkoutViewModel = hiltViewModel()
+) {
+    workoutViewModel.onInitWorkouts()
     ScreenBody(
+        workoutViewModel = workoutViewModel,
         onBottomBarClicked = { navigator.navigate(it) },
-        onAddWorkOutClicked = { navigator.navigate(SearchExerciseScreenDestination) }
+        onAddWorkOutClicked = { navigator.navigate(SearchExerciseScreenDestination) },
+        onWorkOutClicked = { navigator.navigate(ExListScreenDestination(it)) }
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScreenBody(
+    workoutViewModel: WorkoutViewModel,
     onBottomBarClicked: (DirectionDestinationSpec) -> Unit,
-    onAddWorkOutClicked: () -> Unit
+    onAddWorkOutClicked: () -> Unit,
+    onWorkOutClicked: (Int) -> Unit
 ) {
     Scaffold(
         bottomBar = {
@@ -70,28 +80,47 @@ private fun ScreenBody(
             })
         }
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
-            contentAlignment = Alignment.TopCenter
-        ) {
-            LazyColumn {
-                item {
-                    MyCardViewWorkout()
-                }
-                item {
-                    MyAddWorkoutCardView { onAddWorkOutClicked() }
-                }
+        if(!workoutViewModel.state.start){
+            MyCircularProgressbar()
+        } else{
+            Box(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                val workoutList = workoutViewModel.state.user?.workouts
+                if (workoutList != null) {
+                    LazyColumn {
+                        items(workoutList) { workout ->
+                            MyCardViewWorkout(
+                                wotTitle = workout.wotName,
+                                wotDuration = workout.duration,
+                                exCount = workout.exCount,
+                                onWorkOutClicked = {
+                                    onWorkOutClicked(workoutList.indexOf(workout))
+                                }
+                            )
+                        }
+                        item {
+                            MyAddWorkoutCardView { onAddWorkOutClicked() }
+                        }
 
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun MyCardViewWorkout() {
+private fun MyCardViewWorkout(
+    wotTitle: String,
+    wotDuration: Int,
+    exCount: Int,
+    onWorkOutClicked: () -> Unit
+) {
     Box(
         modifier = Modifier
             .height(150.dp)
@@ -114,7 +143,7 @@ private fun MyCardViewWorkout() {
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Upper body strength",
+                    text = wotTitle,
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                     style = MaterialTheme.typography.titleLarge
                 )
@@ -126,18 +155,20 @@ private fun MyCardViewWorkout() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "115 min", color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        text = ("$wotDuration min"),
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
                         style = MaterialTheme.typography.bodyLarge
                     )
                     MySpacer(size = 12)
                     Text(
-                        text = "6 exercises", color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        text = exCount.toString() + stringResource(R.string.exercises),
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
             }
 
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { onWorkOutClicked() }) {
                 Icon(
                     imageVector = Icons.Filled.ArrowForwardIos,
                     contentDescription = "Go to Workout",
@@ -196,13 +227,13 @@ private fun MyAddWorkoutCardView(onAddWorkOutClicked: () -> Unit) {
     }
 }
 
-@Preview
-@Composable
-fun LightPreview() {
-    FitJournalTheme {
-        ScreenBody(onBottomBarClicked = {}, onAddWorkOutClicked = {})
-    }
-}
+//@Preview
+//@Composable
+//fun LightPreview() {
+//    FitJournalTheme {
+//        ScreenBody(onBottomBarClicked = {}, onAddWorkOutClicked = {})
+//    }
+//}
 
 //@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 //@Composable

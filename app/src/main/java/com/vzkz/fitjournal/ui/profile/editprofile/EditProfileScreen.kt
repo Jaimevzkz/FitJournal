@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -46,14 +47,19 @@ fun EditProfileScreen(
 ) {
     editProfileViewModel.onInit()
     val state = editProfileViewModel.state
-    if (state.success) {
-        navigator.navigate(ProfileScreenDestination)
-    } else if (state.loading) {
-        MyCircularProgressbar()
-    } else {
-        ScreenBody(editProfileViewModel){
+    if(state.start){
+        if (state.success) {
             navigator.navigate(ProfileScreenDestination)
+        } else if (state.loading) {
+            MyCircularProgressbar()
+        } else {
+            ScreenBody(editProfileViewModel){
+                navigator.navigate(ProfileScreenDestination)
+            }
         }
+    }
+    else {
+        MyCircularProgressbar()
     }
 }
 
@@ -74,13 +80,13 @@ private fun ScreenBody(
         var readOnlyFirstname by remember { mutableStateOf(true) }
         var lastname by remember { mutableStateOf("") }
         var readOnlyLastname by remember { mutableStateOf(true) }
-        var age by remember { mutableStateOf("") }
+        var age by remember { mutableIntStateOf(-1) }
         var readOnlyAge by remember { mutableStateOf(true) }
         var gender by remember { mutableStateOf("") }
         var readOnlyGender by remember { mutableStateOf(true) }
         var goal by remember { mutableStateOf("") }
         var readOnlyGoal by remember { mutableStateOf(true) }
-        var weight by remember { mutableStateOf("") }
+        var weight by remember { mutableIntStateOf(-1) }
         var readOnlyWeight by remember { mutableStateOf(true) }
 
         var firstTime by remember { mutableStateOf(true) }
@@ -88,10 +94,10 @@ private fun ScreenBody(
             nickname = editProfileViewModel.state.user?.nickname ?: ""
             firstname = editProfileViewModel.state.user?.firstname ?: ""
             lastname = editProfileViewModel.state.user?.lastname ?: ""
-            age = editProfileViewModel.state.user?.age ?: ""
+            age = editProfileViewModel.state.user?.age ?: -1
             gender = editProfileViewModel.state.user?.gender ?: ""
             goal = editProfileViewModel.state.user?.goal ?: ""
-            weight = editProfileViewModel.state.user?.weight ?: ""
+            weight = editProfileViewModel.state.user?.weight ?: -1
             firstTime = false
         }
         var showAlertDialog by remember { mutableStateOf(false) }
@@ -100,6 +106,7 @@ private fun ScreenBody(
 
         //Top screen
         IconButton(modifier = Modifier.align(Alignment.TopStart), onClick = {
+            firstTime = true
             onBackClicked()
         }) {
             Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "Cancel")
@@ -136,18 +143,18 @@ private fun ScreenBody(
             )
             Spacer(modifier = Modifier.weight(1f))
             MyPrivateGenericTextfield(
-                text = age,
+                text = age.toString(),
                 hint = stringResource(id = R.string.age),
                 readOnlyText = readOnlyAge,
-                onTextChanged = { age = it },
+                onTextChanged = { age = if(it != "") it.toInt() else -1 },
                 onReadOnlyChanged = { readOnlyAge = !readOnlyAge }
             )
             Spacer(modifier = Modifier.weight(1f))
             MyPrivateGenericTextfield(
-                text = weight,
+                text = weight.toString(),
                 hint = stringResource(id = R.string.weight),
                 readOnlyText = readOnlyWeight,
-                onTextChanged = { weight = it },
+                onTextChanged = { weight = if(it != "") it.toInt() else -1 },
                 onReadOnlyChanged = { readOnlyWeight = !readOnlyWeight }
             )
             Spacer(modifier = Modifier.weight(1f))
@@ -217,8 +224,8 @@ private fun ScreenBody(
                         nickname = nickname,
                         firstname = firstname,
                         lastname = lastname,
-                        age = (if (age != "") age else null),
-                        weight = (if (weight != "") weight else null),
+                        age = (if (age != -1) age else null),
+                        weight = (if (weight != -1) weight else null),
                         gender = (if (gender != "") gender else null),
                         goal = (if (goal != "") goal else null)
                     )

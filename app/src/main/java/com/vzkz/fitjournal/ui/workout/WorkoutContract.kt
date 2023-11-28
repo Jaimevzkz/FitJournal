@@ -2,16 +2,23 @@ package com.vzkz.fitjournal.ui.workout
 
 import com.vzkz.fitjournal.core.boilerplate.Intent
 import com.vzkz.fitjournal.core.boilerplate.State
+import com.vzkz.fitjournal.domain.model.UserModel
+import com.vzkz.fitjournal.ui.profile.Error
+import com.vzkz.fitjournal.ui.profile.ProfileIntent
 
 
 data class WorkoutState(
+    val user: UserModel?,
+    val error: Error,
     val loading: Boolean,
-//    val counter: Int,
+    val start: Boolean
 ) : State {
     companion object {
         val initial: WorkoutState = WorkoutState(
+            user = null,
+            error = Error(isError = false, errorMsg = null),
             loading = false,
-//            counter = 0,
+            start = false
         )
     }
 }
@@ -19,5 +26,7 @@ data class WorkoutState(
 data class Error(val isError: Boolean, val errorMsg: String?)
 
 sealed class WorkoutIntent: Intent {
-    data class Loading(val isLoading: Boolean): WorkoutIntent()
+    data class SetUserFromPersistence(val user: UserModel?): WorkoutIntent()
+    data class Error(val errorMsg: String): WorkoutIntent()
+    data object Loading: WorkoutIntent()
 }

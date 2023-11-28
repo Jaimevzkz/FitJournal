@@ -1,3 +1,4 @@
+
 package com.vzkz.fitjournal.ui.workout.searchexercise
 
 import androidx.compose.foundation.background

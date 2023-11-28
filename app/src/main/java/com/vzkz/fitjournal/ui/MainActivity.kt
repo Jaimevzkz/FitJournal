@@ -14,7 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.ramcosta.composedestinations.DestinationsNavHost
 import com.vzkz.fitjournal.NavGraphs
-import com.vzkz.fitjournal.domain.usecases.ThemeDSUseCase
+import com.vzkz.fitjournal.domain.usecases.datapersistence.ThemeDSUseCase
 import com.vzkz.fitjournal.ui.theme.FitJournalTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -28,7 +28,7 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
 
     @Inject
-    lateinit var themeDSUseCase:ThemeDSUseCase
+    lateinit var themeDSUseCase: ThemeDSUseCase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

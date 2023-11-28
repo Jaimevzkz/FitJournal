@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.Log
 import com.google.firebase.auth.FirebaseUser
 import com.vzkz.fitjournal.R
+import com.vzkz.fitjournal.core.boilerplate.USERMODELFORTESTS
+import com.vzkz.fitjournal.data.database.dao.UserDao
 import com.vzkz.fitjournal.data.firebase.AuthService
 import com.vzkz.fitjournal.data.firebase.FirestoreService
 import com.vzkz.fitjournal.data.network.ExerciseApiService
@@ -16,9 +18,11 @@ class RepositoryImpl @Inject constructor(
     private val authService: AuthService,
     private val firestoreService: FirestoreService,
     private val context: Context,
-    private val exerciseApiService: ExerciseApiService
+    private val exerciseApiService: ExerciseApiService,
+    private val roomDB: UserDao
 ) : Repository {
 
+    //Firestore
     override suspend fun login(email: String, password: String): UserModel? {
         val user: FirebaseUser?
         try{
@@ -26,13 +30,19 @@ class RepositoryImpl @Inject constructor(
         } catch (e: Exception){
             throw Exception(context.getString(R.string.wrong_email_or_password))
         }
-        if(user != null){
+        if(user != null) {
             val userData: UserModel
-            try{
+            try {
+                //TODO eliminar solo pruebas
+//                firestoreService.insertUser(USERMODELFORTESTS)
+
                 userData = firestoreService.getUserData(user.uid)
-            } catch (e: Exception){
-                if(e.message == "NF") throw Exception(context.getString(R.string.network_failure_while_checking_user_existence))
-                else throw Exception(context.getString(R.string.couldn_t_find_the_user))
+            } catch (e: Exception) {
+                when (e.message) {
+                    "NF" -> throw Exception(context.getString(R.string.network_failure_while_checking_user_existence))
+                    "CF" -> throw Exception(context.getString(R.string.error_converting_firestore_response_to_usermodel))
+                    else -> throw Exception(context.getString(R.string.couldn_t_find_the_user))
+                }
             }
             return user.toDomain(userData)
         }
@@ -45,7 +55,7 @@ class RepositoryImpl @Inject constructor(
         nickname: String,
         firstname: String,
         lastname: String
-    ): UserModel? {
+    ): UserModel {
         if (firestoreService.userExists(nickname)) {
             throw Exception(context.getString(R.string.username_already_in_use))
         } else {
@@ -65,7 +75,6 @@ class RepositoryImpl @Inject constructor(
                 } else {
                     throw Exception()
                 }
-
             } catch (e: Exception){
                 throw Exception(context.getString(R.string.account_already_exists))
             }
@@ -81,6 +90,7 @@ class RepositoryImpl @Inject constructor(
     override suspend fun logout() = authService.logout()
 
     override fun isUserLogged() = authService.isUserLogged()
+
     override suspend fun modifyUserData(oldUser: UserModel, newUser: UserModel) {
         try {
             firestoreService.modifyUserData(oldUser = oldUser, newUser = newUser)
@@ -90,6 +100,22 @@ class RepositoryImpl @Inject constructor(
         }
     }
 
+    private fun FirebaseUser.toDomain(userData: UserModel): UserModel {
+        return UserModel(
+            uid = this.uid,
+            nickname = userData.nickname,
+            email = this.email,
+            firstname = userData.firstname,
+            lastname = userData.lastname,
+            weight = userData.weight,
+            age = userData.age,
+            gender = userData.gender,
+            goal = userData.goal,
+            workouts = userData.workouts
+        )
+    }
+
+    //Retrofit
     override suspend fun getExercisesByName(name: String): List<ExerciseModel>? {
         runCatching {
             exerciseApiService.getExerciseByName(name)
@@ -106,18 +132,16 @@ class RepositoryImpl @Inject constructor(
         return null
     }
 
-    private fun FirebaseUser.toDomain(userData: UserModel): UserModel {
-        return UserModel(
-            uid = this.uid,
-            nickname = userData.nickname,
-            email = this.email,
-            firstname = userData.firstname,
-            lastname = userData.lastname,
-            weight = userData.weight,
-            age = userData.age,
-            gender = userData.gender,
-            goal = userData.goal
-        )
+    //Room
+    override suspend fun getUserFromRoom(nickname: String): UserModel {
+        val userFromRoom = roomDB.getUser(nickname)
+
+        val toDom = userFromRoom?.toDomain()
+            ?: throw Exception("Error getting user from Room DataBase") //This exception should never be thrown
+        return toDom
     }
 
+    override suspend fun insertUserInRoom(userModel: UserModel) {
+        roomDB.insertUser(userModel.toRoomEntity())
+    }
 }

@@ -1,6 +1,7 @@
 package com.vzkz.fitjournal.data.di
 
 import android.content.Context
+import androidx.room.Room
 import com.vzkz.fitjournal.data.network.ExerciseApiService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -9,6 +10,8 @@ import com.google.firebase.ktx.Firebase
 import com.vzkz.fitjournal.BuildConfig.BASE_URL
 import com.vzkz.fitjournal.data.DataStoreRepositoryImpl
 import com.vzkz.fitjournal.data.RepositoryImpl
+import com.vzkz.fitjournal.data.database.UserDB
+import com.vzkz.fitjournal.data.database.dao.UserDao
 import com.vzkz.fitjournal.data.firebase.AuthService
 import com.vzkz.fitjournal.data.firebase.FirestoreService
 import com.vzkz.fitjournal.data.network.interceptor.AuthInterceptor
@@ -34,9 +37,10 @@ object NetworkModule {
         authService: AuthService,
         firestoreService: FirestoreService,
         @ApplicationContext context: Context,
-        exerciseApiService: ExerciseApiService
+        exerciseApiService: ExerciseApiService,
+        roomDB: UserDao
     ): Repository {
-        return RepositoryImpl(authService, firestoreService, context, exerciseApiService)
+        return RepositoryImpl(authService, firestoreService, context, exerciseApiService, roomDB)
     }
 
     @Singleton
@@ -80,5 +84,17 @@ object NetworkModule {
     fun provideExerciseApiService(retrofit: Retrofit): ExerciseApiService {
         return retrofit.create(ExerciseApiService::class.java)
     }
+
+    //Room
+    private const val USER_DB_NAME = "user_database"
+
+    @Singleton
+    @Provides
+    fun provideRoom(@ApplicationContext context: Context) =
+        Room.databaseBuilder(context, UserDB::class.java, USER_DB_NAME).build()
+
+    @Singleton
+    @Provides
+    fun provideUserDao(db: UserDB) = db.getUserDao()
 
 }

@@ -1,4 +1,4 @@
-package com.vzkz.fitjournal.domain.usecases
+package com.vzkz.fitjournal.domain.usecases.datapersistence
 
 import com.vzkz.fitjournal.domain.DataStoreRepository
 import kotlinx.coroutines.flow.Flow

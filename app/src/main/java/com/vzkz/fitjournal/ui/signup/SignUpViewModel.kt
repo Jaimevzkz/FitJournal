@@ -3,7 +3,7 @@ package com.vzkz.fitjournal.ui.signup
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.vzkz.fitjournal.core.boilerplate.BaseViewModel
-import com.vzkz.fitjournal.domain.usecases.SaveUserDataStoreUseCase
+import com.vzkz.fitjournal.domain.usecases.datapersistence.SaveUserPersistenceUseCase
 import com.vzkz.fitjournal.domain.usecases.SignUpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class SignUpViewModel @Inject constructor(private val signUpUseCase: SignUpUseCase, private val saveUserDataStore: SaveUserDataStoreUseCase): BaseViewModel<SignUpState, SignUpIntent>(
+class SignUpViewModel @Inject constructor(private val signUpUseCase: SignUpUseCase, private val saveUserPersistence: SaveUserPersistenceUseCase): BaseViewModel<SignUpState, SignUpIntent>(
     SignUpState.initial) {
 
     override fun reduce(state: SignUpState, intent: SignUpIntent): SignUpState { //This function reduces each intent with a when
@@ -49,13 +49,8 @@ class SignUpViewModel @Inject constructor(private val signUpUseCase: SignUpUseCa
         viewModelScope.launch {
             try {
                 val result = withContext(Dispatchers.IO) { signUpUseCase(email, password, nickname, firstname, lastname) }
-                if (result != null) {
-                    withContext(Dispatchers.IO) { saveUserDataStore(result) }
-                    dispatch(SignUpIntent.SignUp(result))
-                } else {
-                    Log.e("Jaime", "nickname already exists")
-                    dispatch(SignUpIntent.Error(""))
-                }
+                withContext(Dispatchers.IO) { saveUserPersistence(result) }
+                dispatch(SignUpIntent.SignUp(result))
             } catch (e: Exception) {
                 Log.e("Jaime", e.message.orEmpty())
                 dispatch(SignUpIntent.Error(e.message.orEmpty()))

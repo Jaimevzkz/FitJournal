@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -24,22 +25,39 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.vzkz.fitjournal.R
+import com.vzkz.fitjournal.destinations.ExerciseScreenDestination
+import com.vzkz.fitjournal.ui.components.MyCircularProgressbar
 import com.vzkz.fitjournal.ui.components.MySpacer
-import com.vzkz.fitjournal.ui.theme.FitJournalTheme
 
 @Destination
 @Composable
-fun ExListScreen(navigator: DestinationsNavigator) {
-    ScreenBody()
+fun ExListScreen(
+    navigator: DestinationsNavigator,
+    indexOfWorkout: Int,
+    exlistViewModel: ExlistViewModel = hiltViewModel()
+) {
+    exlistViewModel.onInitWorkouts()
+    ScreenBody(
+        exlistViewModel = exlistViewModel,
+        indexOfWorkout = indexOfWorkout,
+        onStartWorkout = { navigator.navigate(ExerciseScreenDestination(indexOfWorkout = indexOfWorkout, indexOfExercise = 0)) }
+    )
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ScreenBody() {
+private fun ScreenBody(
+    exlistViewModel: ExlistViewModel,
+    indexOfWorkout: Int,
+    onStartWorkout: () -> Unit
+) {
     Scaffold(topBar = {
         CenterAlignedTopAppBar(title = { Text(text = "Upper body strength") }, navigationIcon = {
             IconButton(onClick = { /*TODO*/ }) {
@@ -47,36 +65,52 @@ private fun ScreenBody() {
             }
         })
     }) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            LazyColumn(modifier = Modifier) {
-                item { MyExerciseAddedCardView() }
-                item { MyExerciseAddedCardView() }
-                item { MyExerciseAddedCardView() }
-                item { MyExerciseAddedCardView() }
-                item { MyExerciseAddedCardView() }
-            }
-
-            Button(
-                onClick = { /*TODO*/ },
+        if (!exlistViewModel.state.start) {
+            MyCircularProgressbar()
+        } else {
+            Box(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(20.dp)
-                    .fillMaxWidth()
+                    .padding(paddingValues)
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
             ) {
-                Text(text = "Start Workout")
-            }
+                val exercisesList =
+                    exlistViewModel.state.user?.workouts?.get(indexOfWorkout)?.exercises
+                if (exercisesList != null) {
+                    LazyColumn(modifier = Modifier) {
+                        items(exercisesList) { exercise ->
+                            MyExerciseAddedCardView(
+                                exName = exercise.exData.exName,
+                                setNum = exercise.setNum,
+                                rest = exercise.rest
+                            )
+                        }
 
+                        //TODO item add exercise
+                    }
+                }
+
+                Button(
+                    onClick = { onStartWorkout() },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(20.dp)
+                        .fillMaxWidth()
+                ) {
+                    Text(text = stringResource(R.string.start_workout))
+                }
+
+            }
         }
     }
 }
 
 @Composable
-private fun MyExerciseAddedCardView() {
+private fun MyExerciseAddedCardView(
+    exName: String,
+    setNum: Int,
+    rest: Int
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -97,20 +131,20 @@ private fun MyExerciseAddedCardView() {
                 verticalArrangement = Arrangement.Top
             ) {
                 Text(
-                    text = "Incline Hammer Curls",
+                    text = exName,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.titleLarge
                 )
                 MySpacer(size = 8)
                 Row {
                     Text(
-                        text = "4 sets",
+                        text = "$setNum sets",
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         style = MaterialTheme.typography.bodyLarge
                     )
                     MySpacer(size = 8)
                     Text(
-                        text = "8 reps",
+                        text = stringResource(R.string.rest) + "$rest segs",
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -120,13 +154,13 @@ private fun MyExerciseAddedCardView() {
     }
 }
 
-@Preview
-@Composable
-fun LightPreview() {
-    FitJournalTheme {
-        ScreenBody()
-    }
-}
+//@Preview
+//@Composable
+//fun LightPreview() {
+//    FitJournalTheme {
+//        ScreenBody()
+//    }
+//}
 
 //@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 //@Composable

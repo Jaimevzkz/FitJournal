@@ -4,11 +4,11 @@ import com.vzkz.fitjournal.domain.model.UserModel
 import kotlinx.coroutines.flow.Flow
 
 interface DataStoreRepository {
-    suspend fun saveUser(user: UserModel)
+    suspend fun saveUserNickname(nickname: String)
 
-    suspend fun getUser(): Flow<UserModel>
+    suspend fun getUserNickname(): String
 
-    suspend fun cleanUser()
+    suspend fun cleanUserNickname()
 
     suspend fun switchAppTheme()
 

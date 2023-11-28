@@ -10,14 +10,16 @@ data class EditProfileState(
     val user: UserModel?,
     val error: Error,
     val success: Boolean,
-    val loading: Boolean
+    val loading: Boolean,
+    val start: Boolean
 ) : State {
     companion object {
         val initial: EditProfileState = EditProfileState(
             user = null,
             error = Error(false, null),
             success = false,
-            loading = false
+            loading = false,
+            start = false
         )
     }
 }
@@ -25,7 +27,7 @@ data class EditProfileState(
 data class Error(val isError: Boolean, val errorMsg: String?)
 
 sealed class EditProfileIntent: Intent {
-    data class SetUserFromDS(val user: UserModel?): EditProfileIntent()
+    data class SetUserFromPersistence(val user: UserModel): EditProfileIntent()
     data class Error(val errorMsg: String): EditProfileIntent()
     data object CloseError: EditProfileIntent()
     data object  Success: EditProfileIntent()
