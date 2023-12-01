@@ -51,17 +51,28 @@ fun SignUpScreen(
     } else if (state.loading) {
         MyCircularProgressbar(backGroundColor = MaterialTheme.colorScheme.background)
     } else {
-        ScreenBody(onSignInClicked = {
-            navigator.navigate(LoginScreenDestination)
-        }, signUpViewModel, state)
+        val isError = signUpViewModel.state.error.isError
+        val errorMsg = signUpViewModel.state.error.errorMsg
+        ScreenBody(
+            onSignUp = { email, password, nickname, firstname, lastname ->
+                signUpViewModel.onSignUp(email = email, password = password, nickname = nickname, firstname = firstname, lastname = lastname)
+            },
+            onCloseDialog = {signUpViewModel.onCloseDialog()},
+            isError = isError,
+            errorMsg = errorMsg,
+            onSignInClicked = {
+                navigator.navigate(LoginScreenDestination)
+            })
     }
 }
 
 @Composable
 private fun ScreenBody(
     onSignInClicked: () -> Unit,
-    signUpViewModel: SignUpViewModel = hiltViewModel(),
-    state: SignUpState
+    onSignUp: (String, String, String, String, String) -> Unit,
+    onCloseDialog: () -> Unit,
+    isError: Boolean,
+    errorMsg: String?
 ) {
     Box(
         modifier = Modifier
@@ -84,7 +95,7 @@ private fun ScreenBody(
         var isNicknameValid by remember { mutableStateOf(false) }
         var isFirstNameValid by remember { mutableStateOf(false) }
         var isLastNameValid by remember { mutableStateOf(false) }
-        showDialog = state.error.isError
+        showDialog = isError
 
         MyAuthHeader(Modifier.align(Alignment.TopEnd))
 
@@ -204,7 +215,7 @@ private fun ScreenBody(
         Button(
             onClick = {
                 if (isEmailValid && isPasswordValid && isSamePassword && isNicknameValid && isFirstNameValid && isLastNameValid) {
-                    signUpViewModel.onSignUp(email, password, nickname, firstname, lastname)
+                    onSignUp(email, password, nickname, firstname, lastname)
                 }
             },
             Modifier
@@ -217,9 +228,9 @@ private fun ScreenBody(
 
         MyAlertDialog(
             title = stringResource(R.string.error_during_sign_up),
-            text = state.error.errorMsg ?: stringResource(R.string.account_already_exists),
-            onDismiss = { signUpViewModel.onCloseDialog() },
-            onConfirm = { signUpViewModel.onCloseDialog() },
+            text = errorMsg ?: stringResource(R.string.account_already_exists),
+            onDismiss = { onCloseDialog() },
+            onConfirm = { onCloseDialog() },
             showDialog = showDialog
         )
     }
@@ -228,5 +239,4 @@ private fun ScreenBody(
 @Preview
 @Composable
 fun SignUpPreview() {
-    ScreenBody(onSignInClicked = {}, state = SignUpState.initial)
 }

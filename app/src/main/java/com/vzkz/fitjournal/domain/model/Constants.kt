@@ -14,12 +14,14 @@ object Constants {
     const val WORKOUTS = "workouts"
 
     const val WOTNAME = "wotName"
+    const val WID = "wid"
     const val DURATION = "duration"
     const val EXCOUNT = "exCount"
     const val EXERCISES = "exercises"
     const val WOTORDER = "wotOrder"
 
     const val REST = "rest"
+    const val EXID = "exid"
     const val EXORDER = "exOrder"
     const val SETNUM = "setNum"
     const val SETXREPXWEIGHT = "setXrepXweight"

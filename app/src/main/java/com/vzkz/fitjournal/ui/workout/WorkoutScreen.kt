@@ -37,6 +37,7 @@ import com.vzkz.fitjournal.R
 import com.vzkz.fitjournal.destinations.ExListScreenDestination
 import com.vzkz.fitjournal.destinations.SearchExerciseScreenDestination
 import com.vzkz.fitjournal.destinations.WorkoutScreenDestination
+import com.vzkz.fitjournal.domain.model.UserModel
 import com.vzkz.fitjournal.ui.components.MyCircularProgressbar
 import com.vzkz.fitjournal.ui.components.MySpacer
 import com.vzkz.fitjournal.ui.components.bottombar.MyBottomBar
@@ -48,8 +49,11 @@ fun WorkoutScreen(
     workoutViewModel: WorkoutViewModel = hiltViewModel()
 ) {
     workoutViewModel.onInitWorkouts()
+    val start = workoutViewModel.state.start
+    val user = workoutViewModel.state.user
     ScreenBody(
-        workoutViewModel = workoutViewModel,
+        start = start,
+        user = user,
         onBottomBarClicked = { navigator.navigate(it) },
         onAddWorkOutClicked = { navigator.navigate(SearchExerciseScreenDestination) },
         onWorkOutClicked = { navigator.navigate(ExListScreenDestination(it)) }
@@ -59,7 +63,9 @@ fun WorkoutScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScreenBody(
-    workoutViewModel: WorkoutViewModel,
+//    workoutViewModel: WorkoutViewModel,
+    start: Boolean,
+    user: UserModel?,
     onBottomBarClicked: (DirectionDestinationSpec) -> Unit,
     onAddWorkOutClicked: () -> Unit,
     onWorkOutClicked: (Int) -> Unit
@@ -80,7 +86,7 @@ private fun ScreenBody(
             })
         }
     ) { paddingValues ->
-        if(!workoutViewModel.state.start){
+        if(!start){
             MyCircularProgressbar()
         } else{
             Box(
@@ -90,7 +96,7 @@ private fun ScreenBody(
                     .background(MaterialTheme.colorScheme.background),
                 contentAlignment = Alignment.TopCenter
             ) {
-                val workoutList = workoutViewModel.state.user?.workouts
+                val workoutList = user?.workouts
                 if (workoutList != null) {
                     LazyColumn {
                         items(workoutList) { workout ->

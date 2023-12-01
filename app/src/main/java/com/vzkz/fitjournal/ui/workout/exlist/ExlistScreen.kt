@@ -32,6 +32,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.vzkz.fitjournal.R
 import com.vzkz.fitjournal.destinations.ExerciseScreenDestination
+import com.vzkz.fitjournal.domain.model.UserModel
 import com.vzkz.fitjournal.ui.components.MyCircularProgressbar
 import com.vzkz.fitjournal.ui.components.MySpacer
 
@@ -43,8 +44,11 @@ fun ExListScreen(
     exlistViewModel: ExlistViewModel = hiltViewModel()
 ) {
     exlistViewModel.onInitWorkouts()
+    val start = exlistViewModel.state.start
+    val user = exlistViewModel.state.user
     ScreenBody(
-        exlistViewModel = exlistViewModel,
+        user = user,
+        start = start,
         indexOfWorkout = indexOfWorkout,
         onStartWorkout = { navigator.navigate(ExerciseScreenDestination(indexOfWorkout = indexOfWorkout, indexOfExercise = 0)) }
     )
@@ -54,7 +58,8 @@ fun ExListScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScreenBody(
-    exlistViewModel: ExlistViewModel,
+    user: UserModel?,
+    start: Boolean,
     indexOfWorkout: Int,
     onStartWorkout: () -> Unit
 ) {
@@ -65,7 +70,7 @@ private fun ScreenBody(
             }
         })
     }) { paddingValues ->
-        if (!exlistViewModel.state.start) {
+        if (!start) {
             MyCircularProgressbar()
         } else {
             Box(
@@ -74,8 +79,7 @@ private fun ScreenBody(
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
             ) {
-                val exercisesList =
-                    exlistViewModel.state.user?.workouts?.get(indexOfWorkout)?.exercises
+                val exercisesList = user?.workouts?.get(indexOfWorkout)?.exercises
                 if (exercisesList != null) {
                     LazyColumn(modifier = Modifier) {
                         items(exercisesList) { exercise ->

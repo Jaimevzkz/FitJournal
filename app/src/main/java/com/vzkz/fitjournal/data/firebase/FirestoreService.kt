@@ -7,6 +7,7 @@ import com.vzkz.fitjournal.domain.model.Constants.DIFFICULTY
 import com.vzkz.fitjournal.domain.model.Constants.DURATION
 import com.vzkz.fitjournal.domain.model.Constants.EXCOUNT
 import com.vzkz.fitjournal.domain.model.Constants.EXERCISES
+import com.vzkz.fitjournal.domain.model.Constants.EXID
 import com.vzkz.fitjournal.domain.model.Constants.EXNAME
 import com.vzkz.fitjournal.domain.model.Constants.EXORDER
 import com.vzkz.fitjournal.domain.model.Constants.INSTRUCTIONS
@@ -18,6 +19,7 @@ import com.vzkz.fitjournal.domain.model.Constants.SETNUM
 import com.vzkz.fitjournal.domain.model.Constants.SETXREPXWEIGHT
 import com.vzkz.fitjournal.domain.model.Constants.USERS_COLLECTION
 import com.vzkz.fitjournal.domain.model.Constants.WEIGHT
+import com.vzkz.fitjournal.domain.model.Constants.WID
 import com.vzkz.fitjournal.domain.model.Constants.WORKOUTS
 import com.vzkz.fitjournal.domain.model.Constants.WOTNAME
 import com.vzkz.fitjournal.domain.model.Constants.WOTORDER
@@ -117,15 +119,17 @@ class FirestoreService @Inject constructor(firestore: FirebaseFirestore) {
                     )
 
                     Exercises(
+                        exid = exerciseDocument.getString(EXID) ?: "error",
                         rest = exerciseDocument.getLong(REST)?.toInt() ?: -1,
                         exData = exData,
                         setNum = exerciseDocument.getLong(SETNUM)?.toInt() ?: -1,
                         setXrepXweight = repList,
-                        exOrder = exerciseDocument.getLong(EXORDER)?.toInt() ?: -1,
+                        exOrder = exerciseDocument.getLong(EXORDER)?.toInt() ?: -1
                     )
                 }
 
                 WorkoutModel(
+                    wid = workoutDocument.getString(WID) ?: "error",
                     wotName = workoutDocument.getString(WOTNAME) ?: "error",
                     duration = workoutDocument.getLong(DURATION)?.toInt() ?: -1,
                     exCount = workoutDocument.getLong(EXCOUNT)?.toInt() ?: -1,
@@ -147,7 +151,9 @@ class FirestoreService @Inject constructor(firestore: FirebaseFirestore) {
     }
 
     suspend fun modifyUserData(oldUser: UserModel, newUser: UserModel) {
-        if ((oldUser.nickname != newUser.nickname) && (userExists(newUser.nickname))) throw Exception()
+        if ((oldUser.nickname != newUser.nickname) && (userExists(newUser.nickname))) {
+            throw Exception("Nickname already exists")
+        }
 
         // Gets the reference to the user document
         val userDocumentReference = usersCollection.document(oldUser.uid)
@@ -155,14 +161,38 @@ class FirestoreService @Inject constructor(firestore: FirebaseFirestore) {
         // Casts the new UserModel to map in order to update only the needed fields
         val newUserMap = newUser.toMap()
 
-        // Updates firestore data
+        // Updates firestore data and wait for the update to complete
         userDocumentReference.update(newUserMap).addOnSuccessListener {
-            Log.i("Jaime", "Data updated successfully")
-        }.addOnFailureListener {
-            Log.i("Jaime", "Error updating data")
-            throw Exception("NF")
+            Log.i("Jaime", "User data updated successfully")
         }
+            .addOnFailureListener {
+                Log.e("Jaime", "Error updating user data")
+            }
 
+    }
+
+    fun addWorkout(user: UserModel, workout: WorkoutModel) {
+        val userDocument = usersCollection.document(user.uid)
+
+        val workoutDocumentRef = userDocument.collection(WORKOUTS)
+        val docWorkoutDocumentRef = workoutDocumentRef.document()
+
+        val workoutWithWid = workout.copy(wid = docWorkoutDocumentRef.id)
+
+        docWorkoutDocumentRef.set(workoutWithWid.toMap())
+
+        val exerciseListRef = docWorkoutDocumentRef.collection(EXERCISES)
+        for (exercise in workoutWithWid.exercises) {
+            val docExListRef = exerciseListRef.document()
+            val exWithId = exercise.copy(exid = docExListRef.id)
+            docExListRef.set(exercise.exData.toMap(), SetOptions.merge())
+            docExListRef.set(exWithId.toMap(), SetOptions.merge())
+
+            val indExerciseRef = docExListRef.collection(SETXREPXWEIGHT)
+            for (indExercise in exWithId.setXrepXweight) {
+                indExerciseRef.document(indExercise.exNum).set(indExercise.toMap())
+            }
+        }
     }
 
 }

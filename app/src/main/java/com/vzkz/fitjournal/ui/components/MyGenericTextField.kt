@@ -10,6 +10,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -27,32 +29,63 @@ import com.vzkz.fitjournal.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyGenericTextField(
+    outlined: Boolean = true,
     modifier: Modifier,
     hint: String,
     text: String,
     readOnly: Boolean = false,
     onTextChanged: (String) -> Unit,
     trailingIcon: @Composable (() -> Unit)? = null,
+    numberKeyboard: Boolean = false
 ) {
-    OutlinedTextField(
-        modifier = modifier,
-        value = text,
-        onValueChange = { onTextChanged(it) },
-        label = {
-            Text(
-                text = hint,
-                fontSize = 16.sp
-            )
-        },
-        keyboardOptions = KeyboardOptions.Default,
-        singleLine = true,
-        readOnly = readOnly,
-        trailingIcon = trailingIcon,
-        colors = if (readOnly) TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.primary
-        ) else TextFieldDefaults.outlinedTextFieldColors()
-    )
+    if(outlined){
+        OutlinedTextField(
+            modifier = modifier,
+            value = text,
+            onValueChange = { onTextChanged(it) },
+            label = {
+                Text(
+                    text = hint,
+                    fontSize = 16.sp
+                )
+            },
+            keyboardOptions = if (!numberKeyboard) KeyboardOptions.Default else KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Done
+            ),
+            singleLine = true,
+            readOnly = readOnly,
+            trailingIcon = trailingIcon,
+            colors = if (readOnly) TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.primary
+            ) else TextFieldDefaults.outlinedTextFieldColors()
+        )
+
+    } else{
+        TextField(
+            modifier = modifier,
+            value = text,
+            onValueChange = { onTextChanged(it) },
+            label = {
+                Text(
+                    text = hint,
+                    fontSize = 16.sp
+                )
+            },
+            keyboardOptions = if (!numberKeyboard) KeyboardOptions.Default else KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Done
+            ),
+            singleLine = true,
+            readOnly = readOnly,
+            trailingIcon = trailingIcon,
+            colors = if (readOnly) TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.primary
+            ) else TextFieldDefaults.outlinedTextFieldColors()
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -42,6 +42,7 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.vzkz.fitjournal.R
 import com.vzkz.fitjournal.destinations.ExerciseScreenDestination
 import com.vzkz.fitjournal.destinations.HomeScreenDestination
+import com.vzkz.fitjournal.domain.model.UserModel
 import com.vzkz.fitjournal.ui.components.MyCircularProgressbar
 import kotlinx.coroutines.delay
 
@@ -57,8 +58,9 @@ fun ExerciseScreen(
     if (!exerciseViewModel.state.start) {
         MyCircularProgressbar()
     } else {
+        val user = exerciseViewModel.state.user
         ScreenBody(
-            exerciseViewModel = exerciseViewModel,
+            user = user,
             indexOfWorkout = indexOfWorkout,
             indexOfExercise = indexOfExercise,
             onEndExercise = { workoutComplete ->
@@ -77,15 +79,15 @@ fun ExerciseScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScreenBody(
-    exerciseViewModel: ExerciseViewModel,
+    user: UserModel?,
     indexOfWorkout: Int,
     indexOfExercise: Int,
     onEndExercise: (Boolean) -> Unit
 ) {
     val exercise =
-        exerciseViewModel.state.user?.workouts?.get(indexOfWorkout)?.exercises?.get(indexOfExercise)
+        user?.workouts?.get(indexOfWorkout)?.exercises?.get(indexOfExercise)
     val exNum =
-        exerciseViewModel.state.user?.workouts?.get(indexOfWorkout)?.exercises?.size
+        user?.workouts?.get(indexOfWorkout)?.exercises?.size
     if (exercise == null || exNum == null) {
         Box(modifier = Modifier.fillMaxSize()) {
             Text(text = "Error", style = MaterialTheme.typography.displayLarge)
@@ -194,7 +196,7 @@ private fun RestTimer(rest: Int, modifier: Modifier = Modifier, onRestFinished: 
             .fillMaxWidth()
             .padding(16.dp)
             .shadow(elevation = 20.dp, shape = RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.outline),
+            .background(MaterialTheme.colorScheme.tertiaryContainer),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -204,7 +206,7 @@ private fun RestTimer(rest: Int, modifier: Modifier = Modifier, onRestFinished: 
             Text(
                 text = stringResource(R.string.rest2),
                 style = MaterialTheme.typography.displaySmall,
-                color = MaterialTheme.colorScheme.onPrimary,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
                 modifier = Modifier.padding(16.dp)
             )
             Row(
@@ -214,13 +216,13 @@ private fun RestTimer(rest: Int, modifier: Modifier = Modifier, onRestFinished: 
                 Text(
                     text = "$timeLeft",
                     style = MaterialTheme.typography.displayMedium,
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
                     fontSize = 80.sp,
                 )
                 Text(
                     text = " s",
                     style = MaterialTheme.typography.displayMedium,
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 

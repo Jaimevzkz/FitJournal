@@ -33,6 +33,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.vzkz.fitjournal.R
 import com.vzkz.fitjournal.destinations.ProfileScreenDestination
+import com.vzkz.fitjournal.domain.model.UserModel
 import com.vzkz.fitjournal.ui.components.MyAlertDialog
 import com.vzkz.fitjournal.ui.components.MyCircularProgressbar
 import com.vzkz.fitjournal.ui.components.MyConfirmDialog
@@ -53,9 +54,19 @@ fun EditProfileScreen(
         } else if (state.loading) {
             MyCircularProgressbar()
         } else {
-            ScreenBody(editProfileViewModel){
-                navigator.navigate(ProfileScreenDestination)
-            }
+            val user = editProfileViewModel.state.user
+            val isError = editProfileViewModel.state.error.isError
+            val errorMsg = editProfileViewModel.state.error.errorMsg
+            ScreenBody(
+                user = user,
+                isError = isError,
+                errorMsg = errorMsg,
+                onModifyUserData = { newUser, oldUser ->
+                    editProfileViewModel.onModifyUserData(newUser = newUser, oldUser = oldUser)
+                },
+                onCloseDialog = { editProfileViewModel.onCloseDialog() },
+                onBackClicked = { navigator.navigate(ProfileScreenDestination) }
+            )
         }
     }
     else {
@@ -65,7 +76,12 @@ fun EditProfileScreen(
 
 @Composable
 private fun ScreenBody(
-    editProfileViewModel: EditProfileViewModel, onBackClicked: () -> Unit
+    user: UserModel?,
+    isError: Boolean,
+    errorMsg: String?,
+    onModifyUserData: (UserModel, UserModel) -> Unit,
+    onCloseDialog: () -> Unit,
+    onBackClicked: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -91,17 +107,17 @@ private fun ScreenBody(
 
         var firstTime by remember { mutableStateOf(true) }
         if (firstTime) {
-            nickname = editProfileViewModel.state.user?.nickname ?: ""
-            firstname = editProfileViewModel.state.user?.firstname ?: ""
-            lastname = editProfileViewModel.state.user?.lastname ?: ""
-            age = editProfileViewModel.state.user?.age ?: -1
-            gender = editProfileViewModel.state.user?.gender ?: ""
-            goal = editProfileViewModel.state.user?.goal ?: ""
-            weight = editProfileViewModel.state.user?.weight ?: -1
+            nickname = user?.nickname ?: ""
+            firstname = user?.firstname ?: ""
+            lastname = user?.lastname ?: ""
+            age = user?.age ?: -1
+            gender = user?.gender ?: ""
+            goal = user?.goal ?: ""
+            weight = user?.weight ?: -1
             firstTime = false
         }
         var showAlertDialog by remember { mutableStateOf(false) }
-        showAlertDialog = editProfileViewModel.state.error.isError
+        showAlertDialog = isError
         var showConfirmDialog by remember { mutableStateOf(false) }
 
         //Top screen
@@ -216,11 +232,11 @@ private fun ScreenBody(
                 readOnlyGoal = true
 
                 showConfirmDialog = false
-                if (editProfileViewModel.state.user != null &&
+                if (user != null &&
                     nickname != "" && firstname != "" &&
                     lastname != ""
                 ) {
-                    val newUser = editProfileViewModel.state.user!!.copy(
+                    val newUser = user.copy(
                         nickname = nickname,
                         firstname = firstname,
                         lastname = lastname,
@@ -229,10 +245,7 @@ private fun ScreenBody(
                         gender = (if (gender != "") gender else null),
                         goal = (if (goal != "") goal else null)
                     )
-                    editProfileViewModel.onModifyUserData(
-                        newUser = newUser,
-                        oldUser = editProfileViewModel.state.user!!
-                    ) //We know the user is not null
+                    onModifyUserData(newUser, user) //We know the user is not null
                 }
             },
             showDialog = showConfirmDialog
@@ -240,12 +253,10 @@ private fun ScreenBody(
 
         MyAlertDialog( //Error Dialog
             title = stringResource(R.string.error_during_profile_modification),
-            text = editProfileViewModel.state.error.errorMsg
-                ?: stringResource(R.string.username_already_in_use), onDismiss = {
-                editProfileViewModel.onCloseDialog()
-            }, onConfirm = {
-                editProfileViewModel.onCloseDialog()
-            }, showDialog = showAlertDialog
+            text = errorMsg ?: stringResource(R.string.username_already_in_use),
+            onDismiss = { onCloseDialog() },
+            onConfirm = { onCloseDialog() },
+            showDialog = showAlertDialog
         )
     }
 }
@@ -274,7 +285,25 @@ private fun MyPrivateGenericTextfield(
 @Composable
 fun LightPreview() {
     FitJournalTheme {
-        ScreenBody(hiltViewModel()) {}
+        ScreenBody(
+            user = UserModel(
+                uid = "203fj4nfi4",
+                nickname = "Jaime",
+                email = "jaime@gmail.com",
+                firstname = "Jaime",
+                lastname = "Vázquez",
+                weight = null,
+                age = null,
+                gender = null,
+                goal = null,
+                workouts = null
+            ),
+            isError = false,
+            errorMsg = null,
+            onModifyUserData = { s1, s2 -> },
+            onCloseDialog = {}) {
+
+        }
     }
 }
 

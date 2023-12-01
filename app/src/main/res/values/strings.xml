@@ -58,4 +58,9 @@
     <string name="rest2">Rest</string>
     <string name="start_workout">Start Workout</string>
     <string name="log_set">Log set</string>
+    <string name="create">Create</string>
+    <string name="add_exercise">Add exercise</string>
+    <string name="sets">"Sets: "</string>
+    <string name="workout_name">Workout name</string>
+    <string name="create_workout">Create workout</string>
 </resources>

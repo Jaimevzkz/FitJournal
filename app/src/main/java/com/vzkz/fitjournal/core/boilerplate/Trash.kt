@@ -18,12 +18,14 @@ val USERMODELFORTESTS: UserModel = UserModel(
     goal = "Bulking",
     workouts = listOf(
         WorkoutModel(
+            wid = "wZSTSkzOQN25oEKDeocg",
             wotName = "Upper body strength",
             duration = 89,
             exCount = 3,
             wotOrder = 1,
             exercises = listOf(
                 Exercises(
+                    exid = "vaK3TB32xdKgMifrKCV3",
                     rest = 60,
                     exData = ExerciseModel(
                         exName = "Squat",
@@ -40,6 +42,7 @@ val USERMODELFORTESTS: UserModel = UserModel(
                     exOrder = 1
                 ),
                 Exercises(
+                    exid = "DIsDh0yIFJ5j5XWfOW81",
                     rest = 30,
                     exData = ExerciseModel(
                         exName = "Bench Press",
@@ -57,6 +60,7 @@ val USERMODELFORTESTS: UserModel = UserModel(
                     exOrder = 2
                 ),
                 Exercises(
+                    exid = "HpAkRh7jcECHRawrtqjI",
                     rest = 60,
                     exData = ExerciseModel(
                         exName = "Biceps curl",
@@ -76,12 +80,14 @@ val USERMODELFORTESTS: UserModel = UserModel(
             )
         ),
         WorkoutModel(
+            wid = "rduoIqR4EJVN4FiEvucp",
             wotName = "Legs strength",
             duration = 105,
             exCount = 4,
             wotOrder = 2,
             exercises = listOf(
                 Exercises(
+                    exid = "QOYW1RvcU0aVJnB1aiNa",
                     rest = 120,
                     exData = ExerciseModel(
                         exName = "Squat",
@@ -98,6 +104,7 @@ val USERMODELFORTESTS: UserModel = UserModel(
                     exOrder = 1
                 ),
                 Exercises(
+                    exid = "DIsDh0yIFJ5j5XWfOW81",
                     rest = 50,
                     exData = ExerciseModel(
                         exName = "Bench Press",
@@ -115,6 +122,7 @@ val USERMODELFORTESTS: UserModel = UserModel(
                     exOrder = 2
                 ),
                 Exercises(
+                    exid = "aWIAv7909ody9t1kQQMe",
                     rest = 50,
                     exData = ExerciseModel(
                         exName = "Biceps curl",
@@ -132,6 +140,7 @@ val USERMODELFORTESTS: UserModel = UserModel(
                     exOrder = 3
                 ),
                 Exercises(
+                    exid = "dmdFqRZcATGPv0N3cltR",
                     rest = 50,
                     exData = ExerciseModel(
                         exName = "Press",

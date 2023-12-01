@@ -46,10 +46,10 @@ import com.vzkz.fitjournal.destinations.EditProfileScreenDestination
 import com.vzkz.fitjournal.destinations.LoginScreenDestination
 import com.vzkz.fitjournal.destinations.ProfileScreenDestination
 import com.vzkz.fitjournal.destinations.SettingsScreenDestination
+import com.vzkz.fitjournal.domain.model.UserModel
 import com.vzkz.fitjournal.ui.components.MyCircularProgressbar
 import com.vzkz.fitjournal.ui.components.MySpacer
 import com.vzkz.fitjournal.ui.components.bottombar.MyBottomBar
-import com.vzkz.fitjournal.ui.theme.FitJournalTheme
 
 @Destination
 @Composable
@@ -57,17 +57,20 @@ fun ProfileScreen(
     navigator: DestinationsNavigator,
     profileViewModel: ProfileViewModel = hiltViewModel()
 ) {
-    if(profileViewModel.state.logout){
+    if (profileViewModel.state.logout) {
         navigator.navigate(LoginScreenDestination) {
             popUpTo(LoginScreenDestination) {
                 inclusive = true
             }
         }
-    }
-    else{
+    } else {
         profileViewModel.onInitProfile()
+        val user = profileViewModel.state.user
+        val start = profileViewModel.state.start
         ScreenBody(
-            profileViewModel,
+            user = user,
+            start = start,
+            onLogout = { profileViewModel.onLogout() },
             onBottomBarClicked = { navigator.navigate(it) },
             onSettingsClicked = { navigator.navigate(SettingsScreenDestination) },
             onEditProfileClicked = { navigator.navigate(EditProfileScreenDestination) }
@@ -78,9 +81,11 @@ fun ProfileScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScreenBody(
-    profileViewModel: ProfileViewModel,
+    user: UserModel?,
+    start: Boolean,
     onBottomBarClicked: (DirectionDestinationSpec) -> Unit,
     onSettingsClicked: () -> Unit,
+    onLogout: () -> Unit,
     onEditProfileClicked: () -> Unit
 ) {
     val defaultVal = "- "
@@ -93,14 +98,14 @@ private fun ScreenBody(
     var gender by remember { mutableStateOf("") }
     var goal by remember { mutableStateOf("") }
 
-    nickname = profileViewModel.state.user?.nickname ?: defaultVal
-    firstname = profileViewModel.state.user?.firstname ?: defaultVal
-    lastname = profileViewModel.state.user?.lastname ?: defaultVal
-    email = profileViewModel.state.user?.email ?: defaultVal
-    weight = profileViewModel.state.user?.weight ?: -1
-    age = profileViewModel.state.user?.age ?: -1
-    gender = profileViewModel.state.user?.gender ?: defaultVal
-    goal = profileViewModel.state.user?.goal ?: defaultVal
+    nickname = user?.nickname ?: defaultVal
+    firstname = user?.firstname ?: defaultVal
+    lastname = user?.lastname ?: defaultVal
+    email = user?.email ?: defaultVal
+    weight = user?.weight ?: -1
+    age = user?.age ?: -1
+    gender = user?.gender ?: defaultVal
+    goal = user?.goal ?: defaultVal
 
 
     Scaffold(bottomBar = {
@@ -108,9 +113,9 @@ private fun ScreenBody(
             currentDestination = ProfileScreenDestination,
             onClick = { onBottomBarClicked(it) })
     }) { paddingValues ->
-        if(!profileViewModel.state.start){
+        if (!start) {
             MyCircularProgressbar()
-        } else{
+        } else {
             Box(
                 modifier = Modifier
                     .padding(paddingValues)
@@ -261,7 +266,7 @@ private fun ScreenBody(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Button(onClick = { profileViewModel.onLogout() }) {
+                    Button(onClick = { onLogout() }) {
                         Text(text = stringResource(R.string.logout))
                     }
                 }
@@ -273,14 +278,14 @@ private fun ScreenBody(
 @Preview
 @Composable
 fun LightPreview() {
-    FitJournalTheme {
-        ScreenBody(
-            onBottomBarClicked = {},
-            onSettingsClicked = {},
-            onEditProfileClicked = {},
-            profileViewModel = hiltViewModel()
-        )
-    }
+//    FitJournalTheme {
+//        ScreenBody(
+//            onBottomBarClicked = {},
+//            onSettingsClicked = {},
+//            onEditProfileClicked = {},
+//            profileViewModel = hiltViewModel()
+//        )
+//    }
 }
 
 //@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)

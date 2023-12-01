@@ -40,18 +40,22 @@ fun SettingsScreen(
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     settingsViewModel.onInit()
-    ScreenBody(settingsViewModel){
-        navigator.navigate(ProfileScreenDestination)
-    }
+    val darkTheme = settingsViewModel.state.darkTheme
+    ScreenBody(
+        isDarkTheme = darkTheme,
+        onThemeSwitch = { settingsViewModel.onThemeSwitch() },
+        onBackClicked = { navigator.navigate(ProfileScreenDestination) }
+    )
 }
 
 @Composable
 private fun ScreenBody(
-    settingsViewModel: SettingsViewModel = hiltViewModel(),
+    isDarkTheme: Boolean,
+    onThemeSwitch: () -> Unit,
     onBackClicked: () -> Unit
 ) {
     var darkTheme by remember { mutableStateOf(false) }
-    darkTheme = settingsViewModel.state.darkTheme
+    darkTheme = isDarkTheme
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -71,13 +75,14 @@ private fun ScreenBody(
         ) {
             Row(
                 modifier = Modifier
-                    .padding(top = 48.dp).padding(horizontal = 16.dp),
+                    .padding(top = 48.dp)
+                    .padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(text = stringResource(R.string.dark_mode))
                 Spacer(modifier = Modifier.weight(1f))
-                Switch(checked = darkTheme, onCheckedChange = { settingsViewModel.onThemeSwitch() })
+                Switch(checked = darkTheme, onCheckedChange = { onThemeSwitch() })
 
             }
         }
@@ -88,7 +93,7 @@ private fun ScreenBody(
 @Preview
 @Composable
 fun LightPreview() {
-    ScreenBody(){}
+    ScreenBody(isDarkTheme = true, onThemeSwitch = {  }) {}
 }
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)

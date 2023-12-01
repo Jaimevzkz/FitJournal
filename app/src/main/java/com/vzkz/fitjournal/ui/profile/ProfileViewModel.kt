@@ -57,7 +57,7 @@ class ProfileViewModel @Inject constructor(
                 if (user.uid == "") dispatch(ProfileIntent.Error("Couldn't find user in DataStore/room"))
                 else dispatch(ProfileIntent.SetUserFromPersistence(user))
             } catch(e: Exception){
-                Log.e("Jaime", "Error when calling persistence from initPorfile, ${e.message}")
+                Log.e("Jaime", "Error when calling persistence from initProfile, ${e.message}")
             }
         }
     }

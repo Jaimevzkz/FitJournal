@@ -49,17 +49,30 @@ fun LoginScreen(
     } else if (state.loading) {
         MyCircularProgressbar()
     } else {
-        ScreenBody(onSignUpClicked = {
-            navigator.navigate(SignUpScreenDestination)
-        }, loginViewModel, state)
+        val isError = loginViewModel.state.error.isError
+        val errorMsg = loginViewModel.state.error.errorMsg
+        ScreenBody(
+            onSignUpClicked = {
+                navigator.navigate(SignUpScreenDestination)
+            },
+            onLogin = { email, password ->
+                loginViewModel.onLogin(email, password)
+            },
+            onCloseDialog = { loginViewModel.onCloseDialog() },
+            isError  = isError,
+            errorMsg = errorMsg
+        )
     }
 }
 
 @Composable
 private fun ScreenBody(
     onSignUpClicked: () -> Unit,
-    loginViewModel: LoginViewModel = hiltViewModel(),
-    state: LoginState
+    onLogin: (String, String) -> Unit,
+    onCloseDialog: () -> Unit,
+    isError : Boolean,
+    errorMsg: String?
+//    state: LoginState
 ) {
     Box(
         modifier = Modifier
@@ -73,13 +86,15 @@ private fun ScreenBody(
         var password by remember { mutableStateOf("1234Qwerty") }
         var isValid by remember { mutableStateOf(true) }
         var showDialog by remember { mutableStateOf(false) }
-        showDialog = state.error.isError
+        showDialog = isError
 
         MyAuthHeader(Modifier.align(Alignment.TopEnd))
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth().offset(y = (-70).dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset(y = (-70).dp)
         ) {
             MyImageLogo()
             MySpacer(16)
@@ -112,7 +127,7 @@ private fun ScreenBody(
         Button(
             onClick = {
                 if (isValid) {
-                    loginViewModel.onLogin(email, password)
+                    onLogin(email, password)
                 }
             },
             Modifier
@@ -125,9 +140,9 @@ private fun ScreenBody(
 
         MyAlertDialog(
             title = stringResource(R.string.error_during_login),
-            text = state.error.errorMsg ?: stringResource(R.string.invalid_password),
-            onDismiss = { loginViewModel.onCloseDialog() },
-            onConfirm = { loginViewModel.onCloseDialog() },
+            text = errorMsg ?: stringResource(R.string.invalid_password),
+            onDismiss = { onCloseDialog() },
+            onConfirm = { onCloseDialog() },
             showDialog = showDialog
         )
     }
@@ -136,5 +151,11 @@ private fun ScreenBody(
 @Preview
 @Composable
 fun LoginPreview() {
-    ScreenBody(onSignUpClicked = {}, state = LoginState.initial)
+    ScreenBody(
+        onSignUpClicked = {},
+        onLogin = { s1, s2 -> },
+        onCloseDialog = {},
+        isError = false,
+        errorMsg = null
+    )
 }

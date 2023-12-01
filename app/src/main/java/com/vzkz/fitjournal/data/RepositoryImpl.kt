@@ -12,6 +12,7 @@ import com.vzkz.fitjournal.data.network.ExerciseApiService
 import com.vzkz.fitjournal.domain.Repository
 import com.vzkz.fitjournal.domain.model.ExerciseModel
 import com.vzkz.fitjournal.domain.model.UserModel
+import com.vzkz.fitjournal.domain.model.WorkoutModel
 import javax.inject.Inject
 
 class RepositoryImpl @Inject constructor(
@@ -98,6 +99,10 @@ class RepositoryImpl @Inject constructor(
             if (e.message == "NF") throw Exception(context.getString(R.string.error_modifying_user_data_the_user_wasn_t_modified))
             else throw Exception(context.getString(R.string.username_already_in_use_couldn_t_modify_user))
         }
+    }
+
+    override fun addWorkout(user: UserModel, workoutModel: WorkoutModel){
+        firestoreService.addWorkout(user, workout = workoutModel)
     }
 
     private fun FirebaseUser.toDomain(userData: UserModel): UserModel {
