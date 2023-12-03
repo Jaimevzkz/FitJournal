@@ -29,4 +29,5 @@ sealed class WorkoutIntent: Intent {
     data class SetUserFromPersistence(val user: UserModel?): WorkoutIntent()
     data class Error(val errorMsg: String): WorkoutIntent()
     data object Loading: WorkoutIntent()
+    data class DeleteWorkout(val updatedUser: UserModel?): WorkoutIntent()
 }

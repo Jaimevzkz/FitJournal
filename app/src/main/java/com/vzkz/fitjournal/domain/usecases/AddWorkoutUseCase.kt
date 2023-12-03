@@ -12,24 +12,23 @@ class AddWorkoutUseCase @Inject constructor(private val dataStoreRepository: Dat
             val nickname = dataStoreRepository.getUserNickname()
             //get user form room
             val user = repository.getUserFromRoom(nickname)
-            var workoutCopy = workout
-            if(user.workouts == null){ //first workout added
-                //room
-                user.workouts = listOf(workout.copy(wotOrder = 1))
-                //firestore
-                workoutCopy =workout.copy(wotOrder = 1)
-            } else {
-                //room
+            var workoutCopy: WorkoutModel
+            val wotOrder = user.workouts?.size?.plus(1) ?: 1
+
+            //firestore
+            workoutCopy = workout.copy(wotOrder = wotOrder)
+            workoutCopy = repository.addWorkout(user, workoutCopy) //returns the wid assigned
+            //room
+            if(user.workouts == null)
+                user.workouts = listOf(workoutCopy)
+            else{
                 val userWots = mutableListOf<WorkoutModel>()
                 userWots.addAll(user.workouts!!)
-                userWots.add(workout.copy(wotOrder = userWots.size + 1))
+                userWots.add(workout)
                 user.workouts = userWots.toList()
-                //firestore
-                workoutCopy = workout.copy(wotOrder = user.workouts!!.size + 1)
             }
 
             repository.insertUserInRoom(user)
-            repository.addWorkout(user, workoutCopy)
             true
         } catch (e: Exception){
             false

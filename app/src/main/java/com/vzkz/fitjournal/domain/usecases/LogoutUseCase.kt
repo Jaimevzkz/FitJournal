@@ -7,6 +7,6 @@ import javax.inject.Inject
 class LogoutUseCase@Inject constructor(private val repository: Repository, private val dsRepository: DataStoreRepository) {
     suspend operator fun invoke() {
         repository.logout()
-        dsRepository.cleanUserNickname()
+        dsRepository.cleanUserFields()
     }
 }

@@ -1,6 +1,7 @@
 package com.vzkz.fitjournal.domain
 
 import com.vzkz.fitjournal.domain.model.ExerciseModel
+import com.vzkz.fitjournal.domain.model.SetXrepXweight
 import com.vzkz.fitjournal.domain.model.UserModel
 import com.vzkz.fitjournal.domain.model.WorkoutModel
 
@@ -22,11 +23,17 @@ interface Repository {
 
     suspend fun modifyUserData(oldUser: UserModel, newUser: UserModel)
 
-    fun addWorkout(user: UserModel, workoutModel: WorkoutModel)
+    fun addWorkout(user: UserModel, workoutModel: WorkoutModel): WorkoutModel
+
+    fun deleteWorkout(uid: String, wid: String)
+
+    fun updateSets(repList: List<SetXrepXweight>, uid: String, wid: String, exid: String)
 
     suspend fun getExercisesByName(name: String): List<ExerciseModel>?
 
     suspend fun getUserFromRoom(nickname: String): UserModel
 
     suspend fun insertUserInRoom(userModel: UserModel)
+
+    suspend fun uppadteUserInRoom(userModel: UserModel)
 }

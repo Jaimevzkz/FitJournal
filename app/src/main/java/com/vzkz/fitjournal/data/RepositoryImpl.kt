@@ -4,13 +4,13 @@ import android.content.Context
 import android.util.Log
 import com.google.firebase.auth.FirebaseUser
 import com.vzkz.fitjournal.R
-import com.vzkz.fitjournal.core.boilerplate.USERMODELFORTESTS
 import com.vzkz.fitjournal.data.database.dao.UserDao
 import com.vzkz.fitjournal.data.firebase.AuthService
 import com.vzkz.fitjournal.data.firebase.FirestoreService
 import com.vzkz.fitjournal.data.network.ExerciseApiService
 import com.vzkz.fitjournal.domain.Repository
 import com.vzkz.fitjournal.domain.model.ExerciseModel
+import com.vzkz.fitjournal.domain.model.SetXrepXweight
 import com.vzkz.fitjournal.domain.model.UserModel
 import com.vzkz.fitjournal.domain.model.WorkoutModel
 import javax.inject.Inject
@@ -101,8 +101,12 @@ class RepositoryImpl @Inject constructor(
         }
     }
 
-    override fun addWorkout(user: UserModel, workoutModel: WorkoutModel){
-        firestoreService.addWorkout(user, workout = workoutModel)
+    override fun addWorkout(user: UserModel, workoutModel: WorkoutModel): WorkoutModel{
+        return firestoreService.addWorkout(user, workout = workoutModel)
+    }
+
+    override fun deleteWorkout(uid: String, wid: String){
+        firestoreService.deleteWorkout(uid = uid, wid = wid)
     }
 
     private fun FirebaseUser.toDomain(userData: UserModel): UserModel {
@@ -119,6 +123,11 @@ class RepositoryImpl @Inject constructor(
             workouts = userData.workouts
         )
     }
+
+    override fun updateSets(repList: List<SetXrepXweight>, uid: String, wid: String, exid: String){
+        firestoreService.updateSets(repList = repList, uid = uid, wid = wid, exid= exid)
+    }
+
 
     //Retrofit
     override suspend fun getExercisesByName(name: String): List<ExerciseModel>? {
@@ -141,12 +150,15 @@ class RepositoryImpl @Inject constructor(
     override suspend fun getUserFromRoom(nickname: String): UserModel {
         val userFromRoom = roomDB.getUser(nickname)
 
-        val toDom = userFromRoom?.toDomain()
-            ?: throw Exception("Error getting user from Room DataBase") //This exception should never be thrown
-        return toDom
+        return userFromRoom?.toDomain()
+            ?: throw Exception("Error getting user from Room DataBase")
     }
 
     override suspend fun insertUserInRoom(userModel: UserModel) {
         roomDB.insertUser(userModel.toRoomEntity())
+    }
+
+    override suspend fun uppadteUserInRoom(userModel: UserModel){
+        roomDB.updateUserWorkouts(userModel.nickname, userModel)
     }
 }

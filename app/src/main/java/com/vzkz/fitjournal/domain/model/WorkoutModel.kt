@@ -1,6 +1,5 @@
 package com.vzkz.fitjournal.domain.model
 
-import com.google.firebase.firestore.PropertyName
 import com.vzkz.fitjournal.domain.model.Constants.DURATION
 import com.vzkz.fitjournal.domain.model.Constants.EXCOUNT
 import com.vzkz.fitjournal.domain.model.Constants.EXERCISEWEIGHT
@@ -15,7 +14,7 @@ import com.vzkz.fitjournal.domain.model.Constants.WOTNAME
 import com.vzkz.fitjournal.domain.model.Constants.WOTORDER
 
 data class WorkoutModel(
-    val wid: String,
+    var wid: String,
     val wotName: String,
     val duration: Int,
     val exCount: Int,
@@ -35,7 +34,7 @@ data class WorkoutModel(
 
 
 data class Exercises(
-    val exid: String,
+    var exid: String,
     val rest: Int,
     val exData: ExerciseModel,
     val setNum: Int,
@@ -53,9 +52,10 @@ data class Exercises(
 }
 
 data class SetXrepXweight(
-    @PropertyName(EXNUM) val exNum: String,
-    @PropertyName(REPS) val reps: Int = 8,
-    @PropertyName(EXERCISEWEIGHT) val weight: Int = 10){
+    val exNum: String,
+    var reps: Int = 8,
+    var weight: Int = 10
+) {
     fun toMap(): Map<String, Any> {
         return mapOf(
             EXNUM to exNum,

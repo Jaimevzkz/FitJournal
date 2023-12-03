@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.vzkz.fitjournal.data.CONSTANTS.PREFERENCES_NAME
 import com.vzkz.fitjournal.data.CONSTANTS.UserData.NICKNAME
+import com.vzkz.fitjournal.data.CONSTANTS.UserData.UID
 import com.vzkz.fitjournal.domain.DataStoreRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -19,6 +20,7 @@ private object CONSTANTS{
     const val PREFERENCES_NAME = "my_preferences"
     object UserData {
         const val NICKNAME = "nickname"
+        const val UID = "uid"
     }
 }
 
@@ -28,8 +30,9 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 
 class DataStoreRepositoryImpl @Inject constructor(private val context: Context) :
     DataStoreRepository {
-    override suspend fun saveUserNickname(nickname: String) {
+    override suspend fun saveUserNicknameAndUid(nickname: String, uid: String) {
         saveUserField(NICKNAME, nickname)
+        saveUserField(UID, uid)
     }
 
     private suspend fun saveUserField(key: String, value: String) {
@@ -46,9 +49,16 @@ class DataStoreRepositoryImpl @Inject constructor(private val context: Context) 
         }.first()
     }
 
-override suspend fun cleanUserNickname() {
-    deleteStringField(NICKNAME)
-}
+    override suspend fun getUserUid(): String{
+        return context.dataStore.data.map { preferences ->
+            preferences[stringPreferencesKey(UID)] ?: ""
+        }.first()
+    }
+
+    override suspend fun cleanUserFields() {
+        deleteStringField(NICKNAME)
+        deleteStringField(UID)
+    }
 
     private suspend fun deleteStringField(key: String){
         context.dataStore.edit {preferences ->

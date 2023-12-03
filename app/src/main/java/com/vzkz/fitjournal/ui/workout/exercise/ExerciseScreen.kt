@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -34,16 +35,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.vzkz.fitjournal.R
+import com.vzkz.fitjournal.core.boilerplate.USERMODELFORTESTS
+import com.vzkz.fitjournal.destinations.ExListScreenDestination
 import com.vzkz.fitjournal.destinations.ExerciseScreenDestination
 import com.vzkz.fitjournal.destinations.HomeScreenDestination
+import com.vzkz.fitjournal.domain.model.Exercises
 import com.vzkz.fitjournal.domain.model.UserModel
 import com.vzkz.fitjournal.ui.components.MyCircularProgressbar
+import com.vzkz.fitjournal.ui.components.MyGenericTextField
+import com.vzkz.fitjournal.ui.theme.FitJournalTheme
 import kotlinx.coroutines.delay
 
 @Destination
@@ -58,7 +65,8 @@ fun ExerciseScreen(
     if (!exerciseViewModel.state.start) {
         MyCircularProgressbar()
     } else {
-        val user = exerciseViewModel.state.user
+        var user: UserModel? by remember { mutableStateOf(null) }
+        user = exerciseViewModel.state.user
         ScreenBody(
             user = user,
             indexOfWorkout = indexOfWorkout,
@@ -71,6 +79,17 @@ fun ExerciseScreen(
                         indexOfExercise = (indexOfExercise + 1)
                     )
                 )
+            },
+            onBackCLicked = { navigator.navigate(ExListScreenDestination(indexOfWorkout)) },
+            onUpdateRepValues = { userModel, uid, wid, exid ->
+                exerciseViewModel.onLogSet(
+                    userModel,
+                    uid = uid,
+                    wid = wid,
+                    exid = exid,
+                    workoutIndex = indexOfWorkout,
+                    exIndex = indexOfExercise
+                )
             }
         )
     }
@@ -82,10 +101,12 @@ private fun ScreenBody(
     user: UserModel?,
     indexOfWorkout: Int,
     indexOfExercise: Int,
-    onEndExercise: (Boolean) -> Unit
+    onEndExercise: (Boolean) -> Unit,
+    onBackCLicked: () -> Unit,
+    onUpdateRepValues: (UserModel, String, String, String) -> Unit
 ) {
-    val exercise =
-        user?.workouts?.get(indexOfWorkout)?.exercises?.get(indexOfExercise)
+    var exercise: Exercises? by remember { mutableStateOf(null) }
+    exercise = user?.workouts?.get(indexOfWorkout)?.exercises?.get(indexOfExercise)
     val exNum =
         user?.workouts?.get(indexOfWorkout)?.exercises?.size
     if (exercise == null || exNum == null) {
@@ -95,9 +116,9 @@ private fun ScreenBody(
     } else {
         Scaffold(topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(text = exercise.exData.exName) },
+                title = { Text(text = exercise!!.exData.exName) },
                 navigationIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
+                    IconButton(onClick = { onBackCLicked() }) {
                         Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Nav back")
                     }
                 })
@@ -111,18 +132,70 @@ private fun ScreenBody(
                     .background(MaterialTheme.colorScheme.background)
             ) {
                 Column(modifier = Modifier.align(Alignment.Center)) {
-                    for (rep in exercise.setXrepXweight) {
+                    for (set in exercise!!.setXrepXweight) {
                         MyOutlinedCard(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
-                            selected = pointer == (rep.exNum.toInt())
+                            selected = pointer == (set.exNum.toInt())
                         ) {
-                            Row {
-                                Text(text = rep.exNum, modifier = Modifier.padding(10.dp))
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                var reps by remember { mutableStateOf( set.reps.toString()) }
+                                var weight by remember { mutableStateOf(set.weight.toString()) }
+                                Text(text = set.exNum)
                                 Spacer(Modifier.weight(1f))
+
+                                MyGenericTextField(
+                                    modifier = Modifier
+                                        .width(60.dp)
+                                        .padding(bottom = 10.dp),
+                                    outlined = false,
+                                    hint = "",
+                                    text = reps,
+                                    onTextChanged = {
+                                        if(Regex("^[0-9]*$").matches(it)){
+                                            reps = it
+                                        }
+                                        try{
+                                            set.reps = reps.toInt()
+                                        } catch(e: Exception){
+                                            //do nothing
+                                        }
+                                    },
+                                    numberKeyboard = true
+                                )
+
                                 Text(
-                                    text = "${rep.reps} x ${rep.weight} kg",
+                                    text = " x ",
+                                    modifier = Modifier.padding(10.dp)
+                                )
+
+                                MyGenericTextField(
+                                    modifier = Modifier
+                                        .width(80.dp)
+                                        .padding(bottom = 10.dp),
+                                    outlined = false,
+                                    hint = "",
+                                    text = weight,
+                                    onTextChanged = {
+                                        if(Regex("^[0-9]*$").matches(it)){
+                                            weight = it
+                                        }
+                                        try{
+                                            set.weight = weight.toInt()
+                                        } catch(e: Exception){
+                                            //do nothing
+                                        }
+                                    },
+                                    numberKeyboard = true
+                                )
+
+                                Text(
+                                    text = " kg ",
                                     modifier = Modifier.padding(10.dp)
                                 )
                             }
@@ -132,7 +205,7 @@ private fun ScreenBody(
 
                 Button(
                     onClick = {
-                        if (pointer == exercise.setNum) {
+                        if (pointer == exercise!!.setNum) {
                             if (indexOfExercise < exNum - 1) {
                                 onEndExercise(false)
                             } else {
@@ -142,6 +215,13 @@ private fun ScreenBody(
                             pointer++
                             showRest = true
                         }
+
+                        val uid = user.uid
+                        val wid = user.workouts?.get(indexOfWorkout)?.wid ?: "error"
+                        val exid =
+                            user.workouts?.get(indexOfWorkout)?.exercises?.get(indexOfExercise)?.exid
+                                ?: "error"
+                        onUpdateRepValues(user, uid, wid, exid)
                     },
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -152,7 +232,7 @@ private fun ScreenBody(
                 }
 
                 if (showRest) {
-                    RestTimer(rest = exercise.rest, modifier = Modifier.align(Alignment.Center)) {
+                    RestTimer(rest = exercise!!.rest, modifier = Modifier.align(Alignment.Center)) {
                         showRest = false
                     }
                 }
@@ -171,8 +251,8 @@ private fun MyOutlinedCard(
     OutlinedCard(
         modifier = modifier,
         colors = if (selected) CardDefaults.outlinedCardColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            disabledContentColor = MaterialTheme.colorScheme.primary
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            disabledContentColor = MaterialTheme.colorScheme.primaryContainer
         ) else CardDefaults.outlinedCardColors()
     ) {
         content()
@@ -240,12 +320,20 @@ private fun RestTimer(rest: Int, modifier: Modifier = Modifier, onRestFinished: 
 }
 
 
-//@Preview(showSystemUi = false)
-//@Composable
-//fun LightPreview() {
-//    FitJournalTheme {
-//    }
-//}
+@Preview(showSystemUi = false)
+@Composable
+fun LightPreview() {
+    FitJournalTheme {
+        ScreenBody(
+            user = USERMODELFORTESTS,
+            indexOfWorkout = 1,
+            indexOfExercise = 1,
+            onEndExercise = {},
+            onBackCLicked = {},
+            onUpdateRepValues = { _, _, _, _ -> }
+        )
+    }
+}
 
 //@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 //@Composable

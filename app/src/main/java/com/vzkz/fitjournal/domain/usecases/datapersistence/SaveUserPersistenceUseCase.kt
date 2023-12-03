@@ -8,7 +8,7 @@ import javax.inject.Inject
 class SaveUserPersistenceUseCase @Inject constructor(private val dataStoreRepository: DataStoreRepository, private val repository: Repository) {
     suspend operator fun invoke(user: UserModel) {
         //Save nickname in DS
-        dataStoreRepository.saveUserNickname(user.nickname)
+        dataStoreRepository.saveUserNicknameAndUid(nickname = user.nickname, uid = user.uid)
         //Save user in room
         repository.insertUserInRoom(user)
     }

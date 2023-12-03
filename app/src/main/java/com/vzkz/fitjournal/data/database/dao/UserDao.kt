@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.vzkz.fitjournal.data.database.entities.UserEntity
+import com.vzkz.fitjournal.domain.model.UserModel
 
 @Dao
 interface UserDao {
@@ -18,5 +19,8 @@ interface UserDao {
 
     @Query("DELETE FROM user_table" )
     suspend fun clearUsers()
+
+    @Query("UPDATE user_table SET userData = :userData WHERE nickname = :nickname")
+    suspend fun updateUserWorkouts(nickname: String, userData: UserModel)
 
 }

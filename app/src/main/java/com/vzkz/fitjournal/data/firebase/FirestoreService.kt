@@ -171,28 +171,55 @@ class FirestoreService @Inject constructor(firestore: FirebaseFirestore) {
 
     }
 
-    fun addWorkout(user: UserModel, workout: WorkoutModel) {
+    fun addWorkout(user: UserModel, workout: WorkoutModel): WorkoutModel {
         val userDocument = usersCollection.document(user.uid)
 
         val workoutDocumentRef = userDocument.collection(WORKOUTS)
         val docWorkoutDocumentRef = workoutDocumentRef.document()
 
-        val workoutWithWid = workout.copy(wid = docWorkoutDocumentRef.id)
+        workout.wid = docWorkoutDocumentRef.id
 
-        docWorkoutDocumentRef.set(workoutWithWid.toMap())
+        docWorkoutDocumentRef.set(workout.toMap())
 
         val exerciseListRef = docWorkoutDocumentRef.collection(EXERCISES)
-        for (exercise in workoutWithWid.exercises) {
+        for (exercise in workout.exercises) {
             val docExListRef = exerciseListRef.document()
-            val exWithId = exercise.copy(exid = docExListRef.id)
+
+            exercise.exid = docExListRef.id
+
             docExListRef.set(exercise.exData.toMap(), SetOptions.merge())
-            docExListRef.set(exWithId.toMap(), SetOptions.merge())
+            docExListRef.set(exercise.toMap(), SetOptions.merge())
 
             val indExerciseRef = docExListRef.collection(SETXREPXWEIGHT)
-            for (indExercise in exWithId.setXrepXweight) {
+            for (indExercise in exercise.setXrepXweight) {
                 indExerciseRef.document(indExercise.exNum).set(indExercise.toMap())
             }
         }
+        return workout
+    }
+
+    fun deleteWorkout(uid: String, wid: String){
+        val userDocument = usersCollection.document(uid)
+        val workoutDocumentRef = userDocument.collection(WORKOUTS)
+        workoutDocumentRef.document(wid).delete().addOnSuccessListener {
+            Log.i("Jaime", "Workout deleted correctly")
+        }.addOnFailureListener {
+            Log.e("Jaime", "Error deleting workout")
+        }
+    }
+
+    fun updateSets(repList: List<SetXrepXweight>, uid: String, wid: String, exid: String){
+        val userDocument = usersCollection.document(uid)
+        val workoutDocumentRef = userDocument.collection(WORKOUTS)
+        val docWorkoutDocumentRef = workoutDocumentRef.document(wid)
+        val exerciseListRef = docWorkoutDocumentRef.collection(EXERCISES)
+        val docExerciseDocumentRef = exerciseListRef.document(exid)
+        val setXrepListRef = docExerciseDocumentRef.collection(SETXREPXWEIGHT)
+
+        for (indExercise in repList) {
+            setXrepListRef.document(indExercise.exNum).update(indExercise.toMap())
+        }
+
     }
 
 }
