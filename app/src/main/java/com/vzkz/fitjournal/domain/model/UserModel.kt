@@ -10,18 +10,20 @@ import com.vzkz.fitjournal.domain.model.Constants.LASTNAME
 import com.vzkz.fitjournal.domain.model.Constants.NICKNAME
 import com.vzkz.fitjournal.domain.model.Constants.UID
 import com.vzkz.fitjournal.domain.model.Constants.WEIGHT
+import java.time.LocalDate
 
 data class UserModel(
-    val uid: String,
-    val nickname: String,
-    val email: String?,
-    val firstname: String,
-    val lastname: String,
-    val weight: Int? = null,
-    val age: Int? = null,
-    val gender: String? = null,
-    val goal: String? = null,
-    var workouts: List<WorkoutModel>? = null
+    var uid: String,
+    var nickname: String,
+    var email: String?,
+    var firstname: String,
+    var lastname: String,
+    var weight: Int? = null,
+    var age: Int? = null,
+    var gender: String? = null,
+    var goal: String? = null,
+    var workouts: List<WorkoutModel>? = null,
+    var wotDates: List<Pair<LocalDate, String>> = emptyList()
 ) {
     fun toRoomEntity(): UserEntity {
         return UserEntity(
@@ -42,6 +44,26 @@ data class UserModel(
             GENDER to gender,
             GOAL to goal
         )
+    }
+
+    fun datesToMap(): Map<String,String> {
+        val mapRet = mutableMapOf<String, String>()
+        for(date in wotDates){
+            val dateToStr = "${date.first.dayOfMonth}/${date.first.monthValue}/${date.first.year}"
+            mapRet[dateToStr] = date.second
+        }
+        return mapRet.toMap()
+    }
+
+    fun mapToDates(strMap: Map<String, String>){
+        val ret = mutableListOf<Pair<LocalDate, String>>()
+        for(mapEntry in strMap){
+            val numbersList = mapEntry.key.split("/").map { it.toInt() }
+
+            val date = LocalDate.of(numbersList[2], numbersList[1], numbersList[0])
+            ret.add(Pair(date, mapEntry.value))
+        }
+        wotDates = ret.toList()
     }
 
     // No argument constructor

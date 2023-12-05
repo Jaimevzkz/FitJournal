@@ -12,6 +12,7 @@ object Constants {
     const val GENDER = "gender"
     const val GOAL = "goal"
     const val WORKOUTS = "workouts"
+    const val WOTDATES = "wotDates"
 
     const val WOTNAME = "wotName"
     const val WID = "wid"

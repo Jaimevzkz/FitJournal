@@ -21,6 +21,7 @@ import com.vzkz.fitjournal.domain.model.Constants.USERS_COLLECTION
 import com.vzkz.fitjournal.domain.model.Constants.WEIGHT
 import com.vzkz.fitjournal.domain.model.Constants.WID
 import com.vzkz.fitjournal.domain.model.Constants.WORKOUTS
+import com.vzkz.fitjournal.domain.model.Constants.WOTDATES
 import com.vzkz.fitjournal.domain.model.Constants.WOTNAME
 import com.vzkz.fitjournal.domain.model.Constants.WOTORDER
 import com.vzkz.fitjournal.domain.model.ExerciseModel
@@ -43,7 +44,12 @@ class FirestoreService @Inject constructor(firestore: FirebaseFirestore) {
     fun insertUser(userData: UserModel?) {
         if (userData == null) throw Exception()
         val userDocument = usersCollection.document(userData.uid)
-        val user = userData.toMap()
+
+        val mutableUser: MutableMap<String, Any?> = mutableMapOf()
+        mutableUser.putAll(userData.toMap())
+        mutableUser[WOTDATES] = userData.datesToMap()
+        val user: Map<String, Any?> = mutableUser.toMap()
+
 
         if (userData.workouts != null) {
             val workoutDocumentRef = userDocument.collection(WORKOUTS)
@@ -84,62 +90,82 @@ class FirestoreService @Inject constructor(firestore: FirebaseFirestore) {
         return try {
             val userDocumentRef = usersCollection.document(uid)
 
-            val userModel: UserModel =
-                userDocumentRef.get().await().toObject(UserModel::class.java)
-                    ?: throw Exception("CF")
+            val userDoc = userDocumentRef.get().await()
 
-            val workoutsCollectionRef = userDocumentRef.collection(WORKOUTS)
-            val workoutDocuments = workoutsCollectionRef.get().await()
 
-            val workoutsList = workoutDocuments.map { workoutDocument ->
-                val exercisesCollectionRef =
-                    workoutDocument.reference.collection(EXERCISES)
+            val userData = userDoc.data
 
-                val exerciseDocuments = exercisesCollectionRef.get().await()
+            // Asegurarse de que userData no sea nulo
+            if (userData != null) {
+                val userModel = UserModel(
+                    uid = userData["uid"] as String,
+                    nickname = userData["nickname"] as String,
+                    email = userData["email"] as? String,
+                    firstname = userData["firstname"] as String,
+                    lastname = userData["lastname"] as String,
+                    weight = userData["weight"] as? Int,
+                    age = userData["age"] as? Int,
+                    gender = userData["gender"] as? String,
+                    goal = userData["goal"] as? String
+                )
+                // Recuperar el mapa wotDates
+                val wotDatesMap = userDoc.get(WOTDATES) as? Map<String, String> ?: emptyMap()
+                userModel.mapToDates(wotDatesMap)
 
-                val exerciseList = exerciseDocuments.map { exerciseDocument ->
-                    val repCollectionRef =
-                        exerciseDocument.reference.collection(SETXREPXWEIGHT)
+                val workoutsCollectionRef = userDocumentRef.collection(WORKOUTS)
+                val workoutDocuments = workoutsCollectionRef.get().await()
 
-                    val repDocuments = repCollectionRef.get().await()
+                val workoutsList = workoutDocuments.map { workoutDocument ->
+                    val exercisesCollectionRef =
+                        workoutDocument.reference.collection(EXERCISES)
 
-                    val repList = repDocuments.map { repDocument ->
-                        SetXrepXweight(
-                            exNum = repDocument.id,
-                            reps = repDocument.getLong(REPS)?.toInt() ?: -1,
-                            weight = repDocument.getLong(WEIGHT)?.toInt() ?: -1
+                    val exerciseDocuments = exercisesCollectionRef.get().await()
+
+                    val exerciseList = exerciseDocuments.map { exerciseDocument ->
+                        val repCollectionRef =
+                            exerciseDocument.reference.collection(SETXREPXWEIGHT)
+
+                        val repDocuments = repCollectionRef.get().await()
+
+                        val repList = repDocuments.map { repDocument ->
+                            SetXrepXweight(
+                                exNum = repDocument.id,
+                                reps = repDocument.getLong(REPS)?.toInt() ?: -1,
+                                weight = repDocument.getLong(WEIGHT)?.toInt() ?: -1
+                            )
+                        }
+
+                        val exData = ExerciseModel(
+                            exName = exerciseDocument.getString(EXNAME) ?: "error",
+                            muscle = exerciseDocument.getString(MUSCLE) ?: "error",
+                            difficulty = exerciseDocument.getString(DIFFICULTY) ?: "error",
+                            instructions = exerciseDocument.getString(INSTRUCTIONS) ?: "error",
+                        )
+
+                        Exercises(
+                            exid = exerciseDocument.getString(EXID) ?: "error",
+                            rest = exerciseDocument.getLong(REST)?.toInt() ?: -1,
+                            exData = exData,
+                            setNum = exerciseDocument.getLong(SETNUM)?.toInt() ?: -1,
+                            setXrepXweight = repList,
+                            exOrder = exerciseDocument.getLong(EXORDER)?.toInt() ?: -1
                         )
                     }
 
-                    val exData = ExerciseModel(
-                        exName = exerciseDocument.getString(EXNAME) ?: "error",
-                        muscle = exerciseDocument.getString(MUSCLE) ?: "error",
-                        difficulty = exerciseDocument.getString(DIFFICULTY) ?: "error",
-                        instructions = exerciseDocument.getString(INSTRUCTIONS) ?: "error",
-                    )
-
-                    Exercises(
-                        exid = exerciseDocument.getString(EXID) ?: "error",
-                        rest = exerciseDocument.getLong(REST)?.toInt() ?: -1,
-                        exData = exData,
-                        setNum = exerciseDocument.getLong(SETNUM)?.toInt() ?: -1,
-                        setXrepXweight = repList,
-                        exOrder = exerciseDocument.getLong(EXORDER)?.toInt() ?: -1
+                    WorkoutModel(
+                        wid = workoutDocument.getString(WID) ?: "error",
+                        wotName = workoutDocument.getString(WOTNAME) ?: "error",
+                        duration = workoutDocument.getLong(DURATION)?.toInt() ?: -1,
+                        exCount = workoutDocument.getLong(EXCOUNT)?.toInt() ?: -1,
+                        wotOrder = workoutDocument.getLong(WOTORDER)?.toInt() ?: -1,
+                        exercises = exerciseList.sortedBy { it.exOrder }
                     )
                 }
 
-                WorkoutModel(
-                    wid = workoutDocument.getString(WID) ?: "error",
-                    wotName = workoutDocument.getString(WOTNAME) ?: "error",
-                    duration = workoutDocument.getLong(DURATION)?.toInt() ?: -1,
-                    exCount = workoutDocument.getLong(EXCOUNT)?.toInt() ?: -1,
-                    wotOrder = workoutDocument.getLong(WOTORDER)?.toInt() ?: -1,
-                    exercises = exerciseList.sortedBy { it.exOrder }
-                )
-            }
+                userModel.workouts = workoutsList.sortedBy { it.wotOrder }
+                userModel
+            } else throw Exception("CF")
 
-            userModel.workouts = workoutsList.sortedBy { it.wotOrder }
-            userModel
         } catch (e: Exception) {
             Log.e("Jaime", "error getting doc. ${e.message}")
             when (e.message) {

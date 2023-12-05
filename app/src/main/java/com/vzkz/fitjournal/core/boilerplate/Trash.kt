@@ -5,6 +5,7 @@ import com.vzkz.fitjournal.domain.model.Exercises
 import com.vzkz.fitjournal.domain.model.SetXrepXweight
 import com.vzkz.fitjournal.domain.model.UserModel
 import com.vzkz.fitjournal.domain.model.WorkoutModel
+import java.time.LocalDate
 
 val USERMODELFORTESTS: UserModel = UserModel(
     uid = "mUxyPt1uC4hOMcB6jRCcr3upTZN2",
@@ -16,6 +17,13 @@ val USERMODELFORTESTS: UserModel = UserModel(
     age = 21,
     gender = "Male",
     goal = "Bulking",
+    wotDates = listOf(
+        Pair(LocalDate.of(2022, 11, 15), "wZSTSkzOQN25oEKDeocg"),
+        Pair(LocalDate.of(2020, 10, 1), "rduoIqR4EJVN4FiEvucp"),
+        Pair(LocalDate.of(2023, 4, 1), "rduoIqR4EJVN4FiEvucp"),
+        Pair(LocalDate.of(2023, 12, 31), "wZSTSkzOQN25oEKDeocg"),
+        Pair(LocalDate.of(2022, 12, 5), "rduoIqR4EJVN4FiEvucp"),
+    ),
     workouts = listOf(
         WorkoutModel(
             wid = "wZSTSkzOQN25oEKDeocg",

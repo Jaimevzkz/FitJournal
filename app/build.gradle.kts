@@ -15,7 +15,7 @@ android {
 
     defaultConfig {
         applicationId = "com.vzkz.fitjournal"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -129,11 +129,17 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.3.1")
 
     //Room
-    val roomVersion = "2.6.0"
+    val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     annotationProcessor("androidx.room:room-compiler:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
+
+    //Calendar
+    val calendarVersion = "2.4.0"
+    implementation ("com.kizitonwose.calendar:compose:$calendarVersion")
+
+
 
 //    //room object JSON converter
 //    implementation("com.google.code.gson:gson:2.10.1")

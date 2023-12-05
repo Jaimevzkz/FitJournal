@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.google.firebase.auth.FirebaseUser
 import com.vzkz.fitjournal.R
+import com.vzkz.fitjournal.core.boilerplate.USERMODELFORTESTS
 import com.vzkz.fitjournal.data.database.dao.UserDao
 import com.vzkz.fitjournal.data.firebase.AuthService
 import com.vzkz.fitjournal.data.firebase.FirestoreService
