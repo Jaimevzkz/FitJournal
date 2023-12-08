@@ -32,6 +32,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.vzkz.fitjournal.R
 import com.vzkz.fitjournal.destinations.ExerciseScreenDestination
+import com.vzkz.fitjournal.destinations.WorkoutScreenDestination
 import com.vzkz.fitjournal.domain.model.UserModel
 import com.vzkz.fitjournal.ui.components.MyCircularProgressbar
 import com.vzkz.fitjournal.ui.components.MySpacer
@@ -50,6 +51,7 @@ fun ExListScreen(
         user = user,
         start = start,
         indexOfWorkout = indexOfWorkout,
+        onBackClicked = { navigator.navigate(WorkoutScreenDestination) },
         onStartWorkout = { navigator.navigate(ExerciseScreenDestination(indexOfWorkout = indexOfWorkout, indexOfExercise = 0)) }
     )
 
@@ -61,11 +63,12 @@ private fun ScreenBody(
     user: UserModel?,
     start: Boolean,
     indexOfWorkout: Int,
+    onBackClicked: () -> Unit,
     onStartWorkout: () -> Unit
 ) {
     Scaffold(topBar = {
         CenterAlignedTopAppBar(title = { Text(text = "Upper body strength") }, navigationIcon = {
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { onBackClicked() }) {
                 Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Nav back")
             }
         })

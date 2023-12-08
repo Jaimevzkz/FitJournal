@@ -1,5 +1,6 @@
 package com.vzkz.fitjournal.ui.home
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -56,11 +57,14 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.spec.DirectionDestinationSpec
 import com.vzkz.fitjournal.core.boilerplate.USERMODELFORTESTS
 import com.vzkz.fitjournal.destinations.HomeScreenDestination
+import com.vzkz.fitjournal.destinations.ProfileScreenDestination
+import com.vzkz.fitjournal.domain.model.Constants.ERRORSTR
 import com.vzkz.fitjournal.domain.model.WorkoutModel
 import com.vzkz.fitjournal.ui.components.MySpacer
 import com.vzkz.fitjournal.ui.components.bottombar.MyBottomBar
 import com.vzkz.fitjournal.ui.theme.FitJournalTheme
 import com.vzkz.fitjournal.ui.theme.selectedDate
+import com.vzkz.fitjournal.ui.theme.workOutedColor
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
@@ -72,27 +76,42 @@ import java.util.Locale
 @Destination
 @Composable
 fun HomeScreen(navigator: DestinationsNavigator, homeViewModel: HomeViewModel = hiltViewModel()) {
-    homeViewModel.onInitProfile()
-    val wotDates = homeViewModel.state.user?.wotDates ?: emptyList()
-    val wotList = homeViewModel.state.user?.workouts ?: emptyList()
-    ScreenBody(
-        wotDates = wotDates,
-        wotList = wotList,
-        onBottomBarClicked = { navigator.navigate(it) }
-    )
+    homeViewModel.onInit()
+    var wotDates by remember { mutableStateOf<List<Pair<LocalDate, String>>?>(emptyList()) }
+    wotDates = homeViewModel.state.user?.wotDates ?: emptyList()
+    var wotList: List<WorkoutModel> by remember { mutableStateOf(emptyList()) }
+    wotList = homeViewModel.state.user?.workouts ?: emptyList()
+
+//    workout = homeViewModel.state.workout
+
+    if (homeViewModel.state.start) {
+        homeViewModel.onSelectedDate(LocalDate.now(), wotDates ?: emptyList(), wotList)
+        var workout: WorkoutModel by remember { mutableStateOf(homeViewModel.state.workout) }
+
+        ScreenBody(
+            workout = workout,
+            wotDates = wotDates ?: emptyList(),
+            onSelectedDate = {
+                homeViewModel.onSelectedDate(it, wotDates ?: emptyList(), wotList)
+                workout = homeViewModel.state.workout
+            },
+            onBottomBarClicked = { navigator.navigate(it) }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScreenBody(
+    workout: WorkoutModel,
     wotDates: List<Pair<LocalDate, String>>,
-    wotList: List<WorkoutModel>,
+    onSelectedDate: (LocalDate?) -> Unit,
     onBottomBarClicked: (DirectionDestinationSpec) -> Unit
 ) {
     Scaffold(bottomBar = {
         MyBottomBar(
             currentDestination = HomeScreenDestination,
-            onClick = { onBottomBarClicked(it) })
+            onClick = { if(it != HomeScreenDestination) onBottomBarClicked(it) })
     }) { paddingValues ->
         Box(
             modifier = Modifier
@@ -103,7 +122,8 @@ private fun ScreenBody(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(12.dp)
+                    .padding(16.dp)
+                    .padding(top = 12.dp)
                     .align(Alignment.TopCenter)
             ) {
                 val currentMonth = remember { YearMonth.now() }
@@ -122,8 +142,7 @@ private fun ScreenBody(
 
                 var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
 
-                var wid by remember { mutableStateOf<String?>(workoutLogsForDay(currentDate, wotDates)) }
-                var workout by remember{ mutableStateOf<WorkoutModel?>(wotForWid(wid, wotList = wotList)) }
+
                 Column(
                     modifier = Modifier
                         .clip(MaterialTheme.shapes.large)
@@ -137,11 +156,11 @@ private fun ScreenBody(
                                 day = day,
                                 currentDate = currentDate,
                                 isSelected = selectedDate == day.date,
+                                haveWorkout = wotDates.any{it.first == day.date},
                                 onClick = { dayClicked ->
                                     selectedDate =
                                         if (selectedDate == dayClicked.date) null else dayClicked.date
-                                    wid = workoutLogsForDay(selectedDate ?: currentDate, wotDates)
-                                    workout = wotForWid(wid, wotList)
+                                    onSelectedDate(selectedDate)
                                 }
                             )
                         },
@@ -173,7 +192,8 @@ private fun ScreenBody(
                 if (selectedDate != null) {
                     MyWorkoutSumCard(
                         date = selectedDate!!,
-                        wot = workout
+                        wot = workout,
+                        today = selectedDate == currentDate
                     )
                 } else {
                     MyWorkoutSumCard(
@@ -191,6 +211,7 @@ private fun ScreenBody(
 fun Day(
     day: CalendarDay,
     isSelected: Boolean,
+    haveWorkout: Boolean,
     onClick: (CalendarDay) -> Unit,
     currentDate: LocalDate
 ) {
@@ -201,10 +222,11 @@ fun Day(
             .clip(CircleShape)
             .background(
                 color =
-//                if (currentDay == day.date.dayOfMonth && day.position == DayPosition.MonthDate) MaterialTheme.colorScheme.primary
                 if (isSelected) selectedDate
-                else Color.Transparent
+                else if(haveWorkout) workOutedColor
+                else Color.Transparent,
             )
+
             .clickable(
                 enabled = day.position == DayPosition.MonthDate,
                 onClick = { onClick(day) }
@@ -303,7 +325,7 @@ fun CalendarHeader(
 @Composable
 private fun MyWorkoutSumCard(
     date: LocalDate = LocalDate.of(2023, 12, 4),
-    wot: WorkoutModel?,
+    wot: WorkoutModel,
     today: Boolean = false,
 ) {
     Box(
@@ -329,7 +351,7 @@ private fun MyWorkoutSumCard(
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
-            if(wot != null){
+            if (wot.wid != ERRORSTR) {
                 Text(
                     text = wot.wotName,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -365,22 +387,7 @@ private fun MyWorkoutSumCard(
     }
 }
 
-private fun workoutLogsForDay(date: LocalDate, wotDates: List<Pair<LocalDate, String>>): String?{
-    for (wotDate in wotDates)
-        if (date == wotDate.first) return wotDate.second
 
-    return null
-}
-
-private fun wotForWid(wid: String?, wotList: List<WorkoutModel>): WorkoutModel?{
-    if(wid != null){
-        for (wot in wotList){
-            if(wid == wot.wid)
-                return wot
-        }
-    }
-    return null
-}
 
 @Composable
 fun rememberFirstMostVisibleMonth(
@@ -416,15 +423,23 @@ private fun CalendarLayoutInfo.firstMostVisibleMonth(viewportPercent: Float = 50
 fun LightPreview() {
     FitJournalTheme {
         ScreenBody(
+            onBottomBarClicked = {},
+            onSelectedDate = {},
             wotDates = USERMODELFORTESTS.wotDates,
-            wotList = USERMODELFORTESTS.workouts?: emptyList(),
-            onBottomBarClicked = {}
+            workout = USERMODELFORTESTS.workouts?.get(0) ?: WorkoutModel(),
         )
     }
 }
 
-//@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-//@Composable
-//fun DarkPreview() {
-//    ScreenBody {}
-//}
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun DarkPreview() {
+    FitJournalTheme {
+        ScreenBody(
+            onBottomBarClicked = {},
+            onSelectedDate = {},
+            wotDates = USERMODELFORTESTS.wotDates,
+            workout = USERMODELFORTESTS.workouts?.get(0) ?: WorkoutModel(),
+        )
+    }
+}

@@ -114,6 +114,8 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     //FireStore
     implementation("com.google.firebase:firebase-firestore-ktx")
+    //Storage
+    implementation("com.google.firebase:firebase-storage")
 
     //Animation
     implementation("androidx.compose.animation:animation:1.5.4")
@@ -139,10 +141,10 @@ dependencies {
     val calendarVersion = "2.4.0"
     implementation ("com.kizitonwose.calendar:compose:$calendarVersion")
 
+    //Coil
+    implementation("io.coil-kt:coil-compose:2.4.0")
 
 
-//    //room object JSON converter
-//    implementation("com.google.code.gson:gson:2.10.1")
 
 
 }

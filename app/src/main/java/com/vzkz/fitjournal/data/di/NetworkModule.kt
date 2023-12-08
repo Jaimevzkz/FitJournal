@@ -7,6 +7,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.ktx.storage
 import com.vzkz.fitjournal.BuildConfig.BASE_URL
 import com.vzkz.fitjournal.data.DataStoreRepositoryImpl
 import com.vzkz.fitjournal.data.RepositoryImpl
@@ -14,6 +16,7 @@ import com.vzkz.fitjournal.data.database.UserDB
 import com.vzkz.fitjournal.data.database.dao.UserDao
 import com.vzkz.fitjournal.data.firebase.AuthService
 import com.vzkz.fitjournal.data.firebase.FirestoreService
+import com.vzkz.fitjournal.data.firebase.StorageService
 import com.vzkz.fitjournal.data.network.interceptor.AuthInterceptor
 import com.vzkz.fitjournal.domain.DataStoreRepository
 import com.vzkz.fitjournal.domain.Repository
@@ -36,11 +39,12 @@ object NetworkModule {
     fun provideRepository(
         authService: AuthService,
         firestoreService: FirestoreService,
+        storageService: StorageService,
         @ApplicationContext context: Context,
         exerciseApiService: ExerciseApiService,
         roomDB: UserDao
     ): Repository {
-        return RepositoryImpl(authService, firestoreService, context, exerciseApiService, roomDB)
+        return RepositoryImpl(authService, firestoreService, storageService, context, exerciseApiService, roomDB)
     }
 
     @Singleton
@@ -57,6 +61,10 @@ object NetworkModule {
     @Singleton
     @Provides
     fun provideFireStore(): FirebaseFirestore = Firebase.firestore
+
+    @Singleton
+    @Provides
+    fun provideFirebaseStorage(): FirebaseStorage = Firebase.storage
 
     //Retrofit
     @Provides

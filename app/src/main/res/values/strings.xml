@@ -63,4 +63,6 @@
     <string name="sets">"Sets: "</string>
     <string name="workout_name">Workout name</string>
     <string name="create_workout">Create workout</string>
+    <string name="camera">Camera</string>
+    <string name="from_gallery">From gallery</string>
 </resources>

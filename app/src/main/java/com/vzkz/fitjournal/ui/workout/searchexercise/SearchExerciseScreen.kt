@@ -46,7 +46,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.vzkz.fitjournal.R
-import com.vzkz.fitjournal.destinations.HomeScreenDestination
 import com.vzkz.fitjournal.destinations.WorkoutScreenDestination
 import com.vzkz.fitjournal.domain.model.ExerciseModel
 import com.vzkz.fitjournal.domain.model.Exercises
@@ -89,7 +88,7 @@ fun SearchExerciseScreen(
             navigator.navigate(WorkoutScreenDestination)
         },
         onWorkoutCreated = {
-            navigator.navigate(HomeScreenDestination)
+            navigator.navigate(WorkoutScreenDestination)
         })
 }
 
@@ -141,7 +140,7 @@ private fun ScreenBody(
                 verticalArrangement = Arrangement.Center
             ) {
                 MyGenericTextField(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1.2f),
                     hint = "",
                     text = searchContent,
                     trailingIcon = {
@@ -208,7 +207,8 @@ private fun ScreenBody(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 5.dp)
+                        .padding(horizontal = 20.dp)
+                        .padding(bottom = 10.dp)
                         .weight(1f)
                 ) {
                     Text(text = stringResource(R.string.create))
@@ -511,15 +511,85 @@ private fun CreateWorkoutCardView(
 @Composable
 fun LightPreview() {
     FitJournalTheme {
-        AddExerciseCardView(
-            ExerciseModel(
-                exName = "Biceps curl",
-                muscle = "Biceps",
-                difficulty = "Intermediate",
-                instructions = "Example instruction 3"
+        ScreenBody(
+            vmExerciseList = listOf(
+                ExerciseModel(
+                    exName = "Bench press",
+                    muscle = "Chest",
+                    difficulty = "Intermediate",
+                    instructions = "example instruction"
+                ),
+                ExerciseModel(
+                    exName = "Bench press",
+                    muscle = "Chest",
+                    difficulty = "Intermediate",
+                    instructions = "example instruction"
+                ),
+                ExerciseModel(
+                    exName = "Bench press",
+                    muscle = "Chest",
+                    difficulty = "Intermediate",
+                    instructions = "example instruction"
+                ),
+                ExerciseModel(
+                    exName = "Bench press",
+                    muscle = "Chest",
+                    difficulty = "Intermediate",
+                    instructions = "example instruction"
+                ),
+                ExerciseModel(
+                    exName = "Bench press",
+                    muscle = "Chest",
+                    difficulty = "Intermediate",
+                    instructions = "example instruction"
+                ),
+                ExerciseModel(
+                    exName = "Bench press",
+                    muscle = "Chest",
+                    difficulty = "Intermediate",
+                    instructions = "example instruction"
+                ),
+                ExerciseModel(
+                    exName = "Bench press",
+                    muscle = "Chest",
+                    difficulty = "Intermediate",
+                    instructions = "example instruction"
+                ),
+                ExerciseModel(
+                    exName = "Bench press",
+                    muscle = "Chest",
+                    difficulty = "Intermediate",
+                    instructions = "example instruction"
+                ),
+                ExerciseModel(
+                    exName = "Bench press",
+                    muscle = "Chest",
+                    difficulty = "Intermediate",
+                    instructions = "example instruction"
+                ),
+                ExerciseModel(
+                    exName = "Bench press",
+                    muscle = "Chest",
+                    difficulty = "Intermediate",
+                    instructions = "example instruction"
+                ),
             ),
-            onAddExercise = {}
-        ) {}
+            newWorkoutExerciseList = mutableListOf(),
+            loading = false,
+            noResults = false,
+            onWorkoutAdded = { _, _ -> },
+            onExerciseAdded = {},
+            exerciseModelToAdd = ExerciseModel(
+                exName = "Bench press",
+                muscle = "Chest",
+                difficulty = "Intermediate",
+                instructions = "example instruction"
+            ),
+            onSetExerciseModelToAdd = {},
+            onSearchByName = {},
+            onBackCLicked = {  }) {
+
+        }
     }
 }
 

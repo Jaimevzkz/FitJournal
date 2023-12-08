@@ -1,6 +1,8 @@
 package com.vzkz.fitjournal.domain.model
 
 import com.vzkz.fitjournal.domain.model.Constants.DURATION
+import com.vzkz.fitjournal.domain.model.Constants.ERRORINT
+import com.vzkz.fitjournal.domain.model.Constants.ERRORSTR
 import com.vzkz.fitjournal.domain.model.Constants.EXCOUNT
 import com.vzkz.fitjournal.domain.model.Constants.EXERCISEWEIGHT
 import com.vzkz.fitjournal.domain.model.Constants.EXID
@@ -30,6 +32,16 @@ data class WorkoutModel(
             WOTORDER to wotOrder
         )
     }
+
+    // No argument constructor
+    constructor() : this(
+        wid = ERRORSTR,
+        wotName = ERRORSTR,
+        duration = ERRORINT,
+        exCount = ERRORINT,
+        wotOrder = ERRORINT,
+        exercises = listOf(Exercises())
+    )
 }
 
 
@@ -40,7 +52,7 @@ data class Exercises(
     val setNum: Int,
     val exOrder: Int,
     val setXrepXweight: List<SetXrepXweight>
-){
+) {
     fun toMap(): Map<String, Any?> {
         return mapOf(
             EXID to exid,
@@ -49,6 +61,16 @@ data class Exercises(
             EXORDER to exOrder
         )
     }
+
+    // No argument constructor
+    constructor() : this(
+        exid = ERRORSTR,
+        rest = ERRORINT,
+        exData = ExerciseModel(),
+        setNum = ERRORINT,
+        exOrder = ERRORINT,
+        setXrepXweight = listOf(SetXrepXweight())
+    )
 }
 
 data class SetXrepXweight(
@@ -63,4 +85,7 @@ data class SetXrepXweight(
             EXERCISEWEIGHT to weight
         )
     }
+
+    // No argument constructor
+    constructor() : this(exNum = ERRORSTR, reps = ERRORINT, weight = ERRORINT)
 }

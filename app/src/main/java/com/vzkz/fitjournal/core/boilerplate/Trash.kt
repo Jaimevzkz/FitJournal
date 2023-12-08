@@ -22,7 +22,7 @@ val USERMODELFORTESTS: UserModel = UserModel(
         Pair(LocalDate.of(2020, 10, 1), "rduoIqR4EJVN4FiEvucp"),
         Pair(LocalDate.of(2023, 4, 1), "rduoIqR4EJVN4FiEvucp"),
         Pair(LocalDate.of(2023, 12, 31), "wZSTSkzOQN25oEKDeocg"),
-        Pair(LocalDate.of(2022, 12, 5), "rduoIqR4EJVN4FiEvucp"),
+        Pair(LocalDate.of(2023, 12, 5), "rduoIqR4EJVN4FiEvucp"),
     ),
     workouts = listOf(
         WorkoutModel(

@@ -24,7 +24,7 @@ class AddWorkoutUseCase @Inject constructor(private val dataStoreRepository: Dat
             else{
                 val userWots = mutableListOf<WorkoutModel>()
                 userWots.addAll(user.workouts!!)
-                userWots.add(workout)
+                userWots.add(workoutCopy)
                 user.workouts = userWots.toList()
             }
 

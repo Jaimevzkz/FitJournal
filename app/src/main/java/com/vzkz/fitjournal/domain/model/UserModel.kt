@@ -1,8 +1,10 @@
 package com.vzkz.fitjournal.domain.model
 
+import android.net.Uri
 import com.vzkz.fitjournal.data.database.entities.UserEntity
 import com.vzkz.fitjournal.domain.model.Constants.AGE
 import com.vzkz.fitjournal.domain.model.Constants.EMAIL
+import com.vzkz.fitjournal.domain.model.Constants.ERRORSTR
 import com.vzkz.fitjournal.domain.model.Constants.FIRSTNAME
 import com.vzkz.fitjournal.domain.model.Constants.GENDER
 import com.vzkz.fitjournal.domain.model.Constants.GOAL
@@ -23,7 +25,8 @@ data class UserModel(
     var gender: String? = null,
     var goal: String? = null,
     var workouts: List<WorkoutModel>? = null,
-    var wotDates: List<Pair<LocalDate, String>> = emptyList()
+    var wotDates: List<Pair<LocalDate, String>> = emptyList(),
+    var progressPhotos: List<Uri> = emptyList()
 ) {
     fun toRoomEntity(): UserEntity {
         return UserEntity(
@@ -67,6 +70,6 @@ data class UserModel(
     }
 
     // No argument constructor
-    constructor() : this("", "", "", "", "", null, null, null, null, null)
+    constructor() : this(ERRORSTR, ERRORSTR, ERRORSTR, ERRORSTR, ERRORSTR, null, null, null, null, null)
 
 }

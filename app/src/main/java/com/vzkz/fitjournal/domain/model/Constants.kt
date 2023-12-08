@@ -36,4 +36,8 @@ object Constants {
     const val DIFFICULTY = "difficulty"
     const val INSTRUCTIONS = "instructions"
 
+
+    const val ERRORSTR = "error"
+    const val ERRORINT = -1
+
 }

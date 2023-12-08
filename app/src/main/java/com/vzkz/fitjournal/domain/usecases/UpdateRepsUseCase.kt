@@ -13,7 +13,7 @@ class UpdateRepsUseCase @Inject constructor(private val repository: Repository) 
         workoutIndex: Int,
         exIndex: Int
     ) {
-        repository.uppadteUserInRoom(userModel)
+        repository.updateUserInRoom(userModel)
         repository.updateSets(
             repList = userModel.workouts?.get(workoutIndex)?.exercises?.get(exIndex)?.setXrepXweight
                 ?: emptyList(),

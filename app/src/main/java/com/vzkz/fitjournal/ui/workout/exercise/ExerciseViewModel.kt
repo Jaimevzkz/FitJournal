@@ -4,19 +4,23 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.vzkz.fitjournal.core.boilerplate.BaseViewModel
 import com.vzkz.fitjournal.domain.model.UserModel
+import com.vzkz.fitjournal.domain.model.WorkoutModel
+import com.vzkz.fitjournal.domain.usecases.NewDateUseCase
 import com.vzkz.fitjournal.domain.usecases.UpdateRepsUseCase
 import com.vzkz.fitjournal.domain.usecases.datapersistence.GetUserPersistenceUseCase
 import com.vzkz.fitjournal.ui.profile.Error
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 
 @HiltViewModel
 class ExerciseViewModel @Inject constructor(
     private val getUserPersistenceUseCase: GetUserPersistenceUseCase,
-    private val updateRepsUseCase: UpdateRepsUseCase
+    private val updateRepsUseCase: UpdateRepsUseCase,
+    private val newDateUseCase: NewDateUseCase
 ): BaseViewModel<ExerciseState, ExerciseIntent>(ExerciseState.initial) {
 
     override fun reduce(state: ExerciseState, intent: ExerciseIntent): ExerciseState { //This function reduces each intent with a when
@@ -67,6 +71,19 @@ class ExerciseViewModel @Inject constructor(
                 exIndex = exIndex
             )
         }
+    }
+
+    fun onSyncDates(user: UserModel, indexOfWorkout: Int){
+        if(!user.wotDates.any{it.first == LocalDate.now()}){
+            val dateToAdd = Pair(LocalDate.now(), user.workouts?.get(indexOfWorkout)?.wid ?: "error")
+            viewModelScope.launch(Dispatchers.IO) {
+                newDateUseCase(
+                    user = user,
+                    date = dateToAdd
+                )
+            }
+        }
+
     }
 
 

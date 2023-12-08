@@ -1,22 +1,30 @@
 package com.vzkz.fitjournal.data.firebase
 
 import android.util.Log
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.vzkz.fitjournal.domain.model.Constants.AGE
 import com.vzkz.fitjournal.domain.model.Constants.DIFFICULTY
 import com.vzkz.fitjournal.domain.model.Constants.DURATION
+import com.vzkz.fitjournal.domain.model.Constants.EMAIL
 import com.vzkz.fitjournal.domain.model.Constants.EXCOUNT
 import com.vzkz.fitjournal.domain.model.Constants.EXERCISES
 import com.vzkz.fitjournal.domain.model.Constants.EXID
 import com.vzkz.fitjournal.domain.model.Constants.EXNAME
 import com.vzkz.fitjournal.domain.model.Constants.EXORDER
+import com.vzkz.fitjournal.domain.model.Constants.FIRSTNAME
+import com.vzkz.fitjournal.domain.model.Constants.GENDER
+import com.vzkz.fitjournal.domain.model.Constants.GOAL
 import com.vzkz.fitjournal.domain.model.Constants.INSTRUCTIONS
+import com.vzkz.fitjournal.domain.model.Constants.LASTNAME
 import com.vzkz.fitjournal.domain.model.Constants.MUSCLE
 import com.vzkz.fitjournal.domain.model.Constants.NICKNAME
 import com.vzkz.fitjournal.domain.model.Constants.REPS
 import com.vzkz.fitjournal.domain.model.Constants.REST
 import com.vzkz.fitjournal.domain.model.Constants.SETNUM
 import com.vzkz.fitjournal.domain.model.Constants.SETXREPXWEIGHT
+import com.vzkz.fitjournal.domain.model.Constants.UID
 import com.vzkz.fitjournal.domain.model.Constants.USERS_COLLECTION
 import com.vzkz.fitjournal.domain.model.Constants.WEIGHT
 import com.vzkz.fitjournal.domain.model.Constants.WID
@@ -30,6 +38,7 @@ import com.vzkz.fitjournal.domain.model.SetXrepXweight
 import com.vzkz.fitjournal.domain.model.UserModel
 import com.vzkz.fitjournal.domain.model.WorkoutModel
 import kotlinx.coroutines.tasks.await
+import java.time.LocalDate
 import javax.inject.Inject
 
 
@@ -97,16 +106,18 @@ class FirestoreService @Inject constructor(firestore: FirebaseFirestore) {
 
             // Asegurarse de que userData no sea nulo
             if (userData != null) {
+                val weight = userData[WEIGHT] as? Long
+                val age = userData[AGE] as? Long
                 val userModel = UserModel(
-                    uid = userData["uid"] as String,
-                    nickname = userData["nickname"] as String,
-                    email = userData["email"] as? String,
-                    firstname = userData["firstname"] as String,
-                    lastname = userData["lastname"] as String,
-                    weight = userData["weight"] as? Int,
-                    age = userData["age"] as? Int,
-                    gender = userData["gender"] as? String,
-                    goal = userData["goal"] as? String
+                    uid = userData[UID] as String,
+                    nickname = userData[NICKNAME] as String,
+                    email = userData[EMAIL] as? String,
+                    firstname = userData[FIRSTNAME] as String,
+                    lastname = userData[LASTNAME] as String,
+                    weight = weight?.toInt(),
+                    age = age?.toInt(),
+                    gender = userData[GENDER] as? String,
+                    goal = userData[GOAL] as? String
                 )
                 // Recuperar el mapa wotDates
                 val wotDatesMap = userDoc.get(WOTDATES) as? Map<String, String> ?: emptyMap()
@@ -246,6 +257,28 @@ class FirestoreService @Inject constructor(firestore: FirebaseFirestore) {
             setXrepListRef.document(indExercise.exNum).update(indExercise.toMap())
         }
 
+    }
+
+    fun addDate(uid: String, wotDates: List<Pair<LocalDate, String>>){
+        val userDocument = usersCollection.document(uid)
+
+        val newMutableMap = mutableMapOf<String, String>()
+        for(wotDate in wotDates){
+            val dateToAdd = "${wotDate.first.dayOfMonth}/${wotDate.first.monthValue}/${wotDate.first.year}"
+            newMutableMap[dateToAdd] = wotDate.second
+        }
+        val update = mapOf(WOTDATES to newMutableMap.toMap())
+//        val update = mapOf(WOTDATES to FieldValue.arrayUnion(mapOf(dateToAdd to date.second)))
+
+        userDocument.update(update)
+            .addOnSuccessListener {
+                // La actualización fue exitosa
+                Log.i("Jaime","Par clave-valor agregado exitosamente a wotDates.")
+            }
+            .addOnFailureListener { e ->
+                // Manejar cualquier error que ocurra durante la actualización
+                Log.e("Jaime","Error al agregar el par clave-valor a wotDates: $e")
+            }
     }
 
 }

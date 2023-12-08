@@ -1,9 +1,12 @@
 package com.vzkz.fitjournal.ui.profile
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.vzkz.fitjournal.core.boilerplate.BaseViewModel
+import com.vzkz.fitjournal.domain.model.UserModel
 import com.vzkz.fitjournal.domain.usecases.LogoutUseCase
+import com.vzkz.fitjournal.domain.usecases.UploadPhotoUseCase
 import com.vzkz.fitjournal.domain.usecases.datapersistence.GetUserPersistenceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val getUserPersistenceUseCase: GetUserPersistenceUseCase,
-    private val logoutUseCase: LogoutUseCase
+    private val logoutUseCase: LogoutUseCase,
+    private val uploadPhotoUseCase: UploadPhotoUseCase
 ) : BaseViewModel<ProfileState, ProfileIntent>(
     ProfileState.initial
 ) {
@@ -46,6 +50,8 @@ class ProfileViewModel @Inject constructor(
                 loading = true,
                 start = false
             )
+
+            is ProfileIntent.setImg -> state.copy(user = intent.updatedUser)
         }
     }
 
@@ -61,11 +67,26 @@ class ProfileViewModel @Inject constructor(
             }
         }
     }
-    fun onLogout(){
+
+    fun onLogout() {
         viewModelScope.launch(Dispatchers.IO) {
             logoutUseCase()
         }
         dispatch(ProfileIntent.Logout)
+    }
+
+    fun onUploadPhoto(uri: Uri, user: UserModel) {
+        viewModelScope.launch {
+            try{
+                val result = withContext(Dispatchers.IO) { uploadPhotoUseCase(uri, user) }
+                val updatedPhotoList = user.progressPhotos.toMutableList()
+                updatedPhotoList.add(result)
+                dispatch(ProfileIntent.setImg(user.copy(progressPhotos = updatedPhotoList.toList())))
+            } catch (e: Exception){
+                Log.e("Jaime", "Error calling storage. ${e.message}")
+                dispatch(ProfileIntent.Error("Error calling storage. ${e.message}"))
+            }
+        }
     }
 
 

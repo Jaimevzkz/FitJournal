@@ -43,6 +43,7 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.spec.DirectionDestinationSpec
 import com.vzkz.fitjournal.R
 import com.vzkz.fitjournal.destinations.ExListScreenDestination
+import com.vzkz.fitjournal.destinations.ProfileScreenDestination
 import com.vzkz.fitjournal.destinations.SearchExerciseScreenDestination
 import com.vzkz.fitjournal.destinations.WorkoutScreenDestination
 import com.vzkz.fitjournal.domain.model.ExerciseModel
@@ -64,8 +65,6 @@ fun WorkoutScreen(
 ) {
     workoutViewModel.onInitWorkouts()
     val start = workoutViewModel.state.start
-//    var user: UserModel? by remember{ mutableStateOf(workoutViewModel.state.user) }
-
     var user: UserModel? by remember{ mutableStateOf(null) }
     user = workoutViewModel.state.user
     ScreenBody(
@@ -94,7 +93,7 @@ private fun ScreenBody(
         bottomBar = {
             MyBottomBar(
                 currentDestination = WorkoutScreenDestination,
-                onClick = { onBottomBarClicked(it) }
+                onClick = { if(it != WorkoutScreenDestination)onBottomBarClicked(it) }
             )
         },
         topBar = {

@@ -1,24 +1,27 @@
 package com.vzkz.fitjournal.data
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import com.google.firebase.auth.FirebaseUser
 import com.vzkz.fitjournal.R
-import com.vzkz.fitjournal.core.boilerplate.USERMODELFORTESTS
 import com.vzkz.fitjournal.data.database.dao.UserDao
 import com.vzkz.fitjournal.data.firebase.AuthService
 import com.vzkz.fitjournal.data.firebase.FirestoreService
+import com.vzkz.fitjournal.data.firebase.StorageService
 import com.vzkz.fitjournal.data.network.ExerciseApiService
 import com.vzkz.fitjournal.domain.Repository
 import com.vzkz.fitjournal.domain.model.ExerciseModel
 import com.vzkz.fitjournal.domain.model.SetXrepXweight
 import com.vzkz.fitjournal.domain.model.UserModel
 import com.vzkz.fitjournal.domain.model.WorkoutModel
+import java.time.LocalDate
 import javax.inject.Inject
 
 class RepositoryImpl @Inject constructor(
     private val authService: AuthService,
     private val firestoreService: FirestoreService,
+    private val storageService: StorageService,
     private val context: Context,
     private val exerciseApiService: ExerciseApiService,
     private val roomDB: UserDao
@@ -46,6 +49,7 @@ class RepositoryImpl @Inject constructor(
                     else -> throw Exception(context.getString(R.string.couldn_t_find_the_user))
                 }
             }
+            userData.progressPhotos = storageService.getAllProgressPhotos(userData.uid)
             return user.toDomain(userData)
         }
         return null
@@ -121,12 +125,22 @@ class RepositoryImpl @Inject constructor(
             age = userData.age,
             gender = userData.gender,
             goal = userData.goal,
-            workouts = userData.workouts
+            workouts = userData.workouts,
+            wotDates = userData.wotDates,
+            progressPhotos = userData.progressPhotos
         )
     }
 
-    override fun updateSets(repList: List<SetXrepXweight>, uid: String, wid: String, exid: String){
-        firestoreService.updateSets(repList = repList, uid = uid, wid = wid, exid= exid)
+    override fun updateSets(repList: List<SetXrepXweight>, uid: String, wid: String, exid: String) {
+        firestoreService.updateSets(repList = repList, uid = uid, wid = wid, exid = exid)
+    }
+
+    override fun updateDate(uid: String, wotDates: List<Pair<LocalDate, String>>) {
+        firestoreService.addDate(uid, wotDates)
+    }
+
+    override suspend fun uploadPhoto(uri: Uri, uid: String): Uri {
+        return storageService.uploadAndDownloadImage(uri, uid)
     }
 
 
@@ -159,7 +173,7 @@ class RepositoryImpl @Inject constructor(
         roomDB.insertUser(userModel.toRoomEntity())
     }
 
-    override suspend fun uppadteUserInRoom(userModel: UserModel){
+    override suspend fun updateUserInRoom(userModel: UserModel) {
         roomDB.updateUserWorkouts(userModel.nickname, userModel)
     }
 }

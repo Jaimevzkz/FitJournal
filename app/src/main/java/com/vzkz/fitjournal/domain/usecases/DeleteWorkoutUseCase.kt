@@ -4,7 +4,6 @@ import android.util.Log
 import com.vzkz.fitjournal.domain.DataStoreRepository
 import com.vzkz.fitjournal.domain.Repository
 import com.vzkz.fitjournal.domain.model.UserModel
-import com.vzkz.fitjournal.domain.model.WorkoutModel
 import javax.inject.Inject
 
 class DeleteWorkoutUseCase @Inject constructor(private val dataStoreRepository: DataStoreRepository, private val repository: Repository) {
@@ -18,7 +17,7 @@ class DeleteWorkoutUseCase @Inject constructor(private val dataStoreRepository: 
             val user = repository.getUserFromRoom(nickname)
             val updatedWots = user.workouts?.filter { it.wid != wid }
             val updatedUser = user.copy(workouts = updatedWots)
-            repository.uppadteUserInRoom(updatedUser)
+            repository.updateUserInRoom(updatedUser)
 
             repository.deleteWorkout(uid = uid, wid = wid)
             updatedUser

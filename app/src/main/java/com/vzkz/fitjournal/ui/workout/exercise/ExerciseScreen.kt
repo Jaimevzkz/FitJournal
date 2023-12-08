@@ -45,7 +45,7 @@ import com.vzkz.fitjournal.R
 import com.vzkz.fitjournal.core.boilerplate.USERMODELFORTESTS
 import com.vzkz.fitjournal.destinations.ExListScreenDestination
 import com.vzkz.fitjournal.destinations.ExerciseScreenDestination
-import com.vzkz.fitjournal.destinations.HomeScreenDestination
+import com.vzkz.fitjournal.destinations.WorkoutCompleteScreenDestination
 import com.vzkz.fitjournal.domain.model.Exercises
 import com.vzkz.fitjournal.domain.model.UserModel
 import com.vzkz.fitjournal.ui.components.MyCircularProgressbar
@@ -72,8 +72,13 @@ fun ExerciseScreen(
             indexOfWorkout = indexOfWorkout,
             indexOfExercise = indexOfExercise,
             onEndExercise = { workoutComplete ->
-                if (workoutComplete) navigator.navigate(HomeScreenDestination)
-                else navigator.navigate(
+                if (workoutComplete) {
+                    navigator.navigate(
+                        WorkoutCompleteScreenDestination(
+                            indexOfWorkout
+                        )
+                    )
+                } else navigator.navigate(
                     ExerciseScreenDestination(
                         indexOfWorkout = indexOfWorkout,
                         indexOfExercise = (indexOfExercise + 1)
