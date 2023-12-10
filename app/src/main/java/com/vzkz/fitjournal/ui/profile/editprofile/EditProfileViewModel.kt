@@ -1,14 +1,15 @@
 package com.vzkz.fitjournal.ui.profile.editprofile
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.vzkz.fitjournal.core.boilerplate.BaseViewModel
 import com.vzkz.fitjournal.domain.model.UserModel
-import com.vzkz.fitjournal.domain.usecases.datapersistence.GetUserPersistenceUseCase
 import com.vzkz.fitjournal.domain.usecases.ModifyUserDataUseCase
+import com.vzkz.fitjournal.domain.usecases.UploadPhotoUseCase
+import com.vzkz.fitjournal.domain.usecases.datapersistence.GetUserPersistenceUseCase
 import com.vzkz.fitjournal.domain.usecases.datapersistence.SaveUserPersistenceUseCase
 import com.vzkz.fitjournal.ui.profile.Error
-import com.vzkz.fitjournal.ui.profile.ProfileIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -20,7 +21,8 @@ import javax.inject.Inject
 class EditProfileViewModel @Inject constructor(
     private val getUserPersistenceUseCase: GetUserPersistenceUseCase,
     private val modifyUserDataUseCase: ModifyUserDataUseCase,
-    private val saveUserPersistenceUseCase: SaveUserPersistenceUseCase
+    private val saveUserPersistenceUseCase: SaveUserPersistenceUseCase,
+    private val uploadPhotoUseCase: UploadPhotoUseCase
 ) :
     BaseViewModel<EditProfileState, EditProfileIntent>(EditProfileState.initial) {
 
@@ -62,6 +64,8 @@ class EditProfileViewModel @Inject constructor(
                 loading = true,
                 start = false
             )
+
+            is EditProfileIntent.SetImg -> state.copy(user = intent.updatedUser)
         }
     }
 
@@ -98,6 +102,24 @@ class EditProfileViewModel @Inject constructor(
     }
 
     fun onCloseDialog() = dispatch(EditProfileIntent.CloseError)
+
+    fun onUploadPhoto(uri: Uri, user: UserModel) {
+        viewModelScope.launch {
+            try {
+                val result = withContext(Dispatchers.IO) {
+                    uploadPhotoUseCase(
+                        uri = uri,
+                        user = user,
+                        profilePhoto = true
+                    )
+                }
+                dispatch(EditProfileIntent.SetImg(user.copy(profilePhoto = result)))
+            } catch (e: Exception) {
+                Log.e("Jaime", "Error calling storage. ${e.message}")
+                dispatch(EditProfileIntent.Error("Error calling storage. ${e.message}"))
+            }
+        }
+    }
 
 
 }

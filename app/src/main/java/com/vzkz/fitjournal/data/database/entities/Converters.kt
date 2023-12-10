@@ -8,9 +8,11 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
+import com.google.gson.JsonParseException
 import com.google.gson.JsonPrimitive
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
+import com.google.gson.TypeAdapter
 import com.vzkz.fitjournal.domain.model.UserModel
 import java.lang.reflect.Type
 import java.time.LocalDate
@@ -72,10 +74,42 @@ class UriListAdapter : JsonSerializer<List<Uri>>, JsonDeserializer<List<Uri>> {
     }
 }
 
+class UriTypeAdapter : TypeAdapter<Uri>(), JsonSerializer<Uri>, JsonDeserializer<Uri> {
+
+    override fun write(out: com.google.gson.stream.JsonWriter?, value: Uri?) {
+        out?.value(value?.toString())
+    }
+
+    override fun read(`in`: com.google.gson.stream.JsonReader?): Uri? {
+        val uriString = `in`?.nextString()
+        return uriString?.let { Uri.parse(it) }
+    }
+
+    override fun serialize(
+        src: Uri?,
+        typeOfSrc: Type?,
+        context: JsonSerializationContext?
+    ): JsonElement {
+        return JsonPrimitive(src?.toString())
+    }
+
+    override fun deserialize(
+        json: JsonElement?,
+        typeOfT: Type?,
+        context: JsonDeserializationContext?
+    ): Uri? {
+        if (json is JsonPrimitive && json.isString) {
+            return Uri.parse(json.asString)
+        } else {
+            throw JsonParseException("Invalid JSON format for Uri")
+        }
+    }
+}
+
 object GsonProvider {
     val gson: Gson = GsonBuilder()
         .registerTypeAdapter(LocalDate::class.java, LocalDateAdapter())
-//        .registerTypeAdapter(List::class.java, UriListAdapter())
         .registerTypeAdapter(object : TypeToken<List<Uri>>() {}.type, UriListAdapter())
+        .registerTypeAdapter(Uri::class.java, UriTypeAdapter())
         .create()
 }

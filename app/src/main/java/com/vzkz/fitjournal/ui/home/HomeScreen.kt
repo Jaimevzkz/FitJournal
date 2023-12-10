@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.ArrowForwardIos
@@ -82,7 +84,6 @@ fun HomeScreen(navigator: DestinationsNavigator, homeViewModel: HomeViewModel = 
     var wotList: List<WorkoutModel> by remember { mutableStateOf(emptyList()) }
     wotList = homeViewModel.state.user?.workouts ?: emptyList()
 
-//    workout = homeViewModel.state.workout
 
     if (homeViewModel.state.start) {
         homeViewModel.onSelectedDate(LocalDate.now(), wotDates ?: emptyList(), wotList)
@@ -125,6 +126,7 @@ private fun ScreenBody(
                     .padding(16.dp)
                     .padding(top = 12.dp)
                     .align(Alignment.TopCenter)
+                    .verticalScroll(rememberScrollState())
             ) {
                 val currentMonth = remember { YearMonth.now() }
                 val currentDate = remember { LocalDate.now() }
@@ -218,15 +220,14 @@ fun Day(
     Box(
         modifier = Modifier
             .aspectRatio(1f)
-            .padding(6.dp)
+            .padding(4.dp)
             .clip(CircleShape)
             .background(
                 color =
                 if (isSelected) selectedDate
-                else if(haveWorkout) workOutedColor
+                else if (haveWorkout) workOutedColor
                 else Color.Transparent,
             )
-
             .clickable(
                 enabled = day.position == DayPosition.MonthDate,
                 onClick = { onClick(day) }
@@ -419,21 +420,9 @@ private fun CalendarLayoutInfo.firstMostVisibleMonth(viewportPercent: Float = 50
 }
 
 @Preview
+//@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, name = "Dark preview")
 @Composable
 fun LightPreview() {
-    FitJournalTheme {
-        ScreenBody(
-            onBottomBarClicked = {},
-            onSelectedDate = {},
-            wotDates = USERMODELFORTESTS.wotDates,
-            workout = USERMODELFORTESTS.workouts?.get(0) ?: WorkoutModel(),
-        )
-    }
-}
-
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun DarkPreview() {
     FitJournalTheme {
         ScreenBody(
             onBottomBarClicked = {},

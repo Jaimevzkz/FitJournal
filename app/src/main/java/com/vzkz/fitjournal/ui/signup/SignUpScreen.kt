@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,6 +41,7 @@ import com.vzkz.fitjournal.ui.components.MyPasswordTextField
 import com.vzkz.fitjournal.ui.components.MySpacer
 import com.vzkz.fitjournal.ui.components.validateEmail
 import com.vzkz.fitjournal.ui.components.validatePassword
+import com.vzkz.fitjournal.ui.theme.FitJournalTheme
 
 @Destination
 @Composable
@@ -81,12 +85,12 @@ private fun ScreenBody(
             .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
-        var email by remember { mutableStateOf("jaimevzkz1+2@gmail.com") }
-        var password by remember { mutableStateOf("1234Qwerty") }
-        var repeatPassword by remember { mutableStateOf("1234Qwerty") }
-        var nickname by remember { mutableStateOf("jaimee") }
-        var firstname by remember { mutableStateOf("Jaime") }
-        var lastname by remember { mutableStateOf("Vázquez") }
+        var email by remember { mutableStateOf("") }
+        var password by remember { mutableStateOf("") }
+        var repeatPassword by remember { mutableStateOf("") }
+        var nickname by remember { mutableStateOf("") }
+        var firstname by remember { mutableStateOf("") }
+        var lastname by remember { mutableStateOf("") }
         //validation
         var isEmailValid by remember { mutableStateOf(true) }
         var isPasswordValid by remember { mutableStateOf(true) }
@@ -104,7 +108,8 @@ private fun ScreenBody(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .offset(y = (-70).dp)
+                .padding(bottom = 72.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             MyImageLogo()
             MySpacer(16)
@@ -220,7 +225,8 @@ private fun ScreenBody(
             },
             Modifier
                 .fillMaxWidth()
-                .padding(48.dp)
+                .padding(bottom = 24.dp)
+                .padding(horizontal = 48.dp)
                 .align(Alignment.BottomCenter)
         ) {
             Text(text = stringResource(id = R.string.signup))
@@ -236,7 +242,17 @@ private fun ScreenBody(
     }
 }
 
-@Preview
+@Preview(device = Devices.NEXUS_5X)
+@Preview()
 @Composable
 fun SignUpPreview() {
+    FitJournalTheme {
+        ScreenBody(
+            onSignInClicked = {  },
+            onSignUp = {_, _, _, _, _ ->},
+            onCloseDialog = {  },
+            isError = false,
+            errorMsg = ""
+        )
+    }
 }

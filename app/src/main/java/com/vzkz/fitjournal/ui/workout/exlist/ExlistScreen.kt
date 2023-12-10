@@ -84,7 +84,7 @@ private fun ScreenBody(
             ) {
                 val exercisesList = user?.workouts?.get(indexOfWorkout)?.exercises
                 if (exercisesList != null) {
-                    LazyColumn(modifier = Modifier) {
+                    LazyColumn(modifier = Modifier.padding(bottom = 68.dp)) {
                         items(exercisesList) { exercise ->
                             MyExerciseAddedCardView(
                                 exName = exercise.exData.exName,
@@ -92,8 +92,6 @@ private fun ScreenBody(
                                 rest = exercise.rest
                             )
                         }
-
-                        //TODO item add exercise
                     }
                 }
 
@@ -118,12 +116,15 @@ private fun MyExerciseAddedCardView(
     setNum: Int,
     rest: Int
 ) {
+    val backgroundColor = MaterialTheme.colorScheme.secondaryContainer
+    val contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
             .shadow(elevation = 20.dp, shape = RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.primaryContainer)
+            .background(backgroundColor)
     ) {
         Row(
             Modifier,
@@ -139,20 +140,20 @@ private fun MyExerciseAddedCardView(
             ) {
                 Text(
                     text = exName,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    color = contentColor,
                     style = MaterialTheme.typography.titleLarge
                 )
                 MySpacer(size = 8)
                 Row {
                     Text(
                         text = "$setNum sets",
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = contentColor,
                         style = MaterialTheme.typography.bodyLarge
                     )
                     MySpacer(size = 8)
                     Text(
                         text = stringResource(R.string.rest) + "$rest segs",
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        color = contentColor,
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }

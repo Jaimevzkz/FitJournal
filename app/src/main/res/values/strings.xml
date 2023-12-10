@@ -65,4 +65,7 @@
     <string name="create_workout">Create workout</string>
     <string name="camera">Camera</string>
     <string name="from_gallery">From gallery</string>
+    <string name="add">Add</string>
+    <string name="progress_photo">progress photo</string>
+    <string name="change_profile_photo">Change profile photo</string>
 </resources>

@@ -33,7 +33,9 @@ interface Repository {
 
     fun updateDate(uid: String, wotDates: List<Pair<LocalDate, String>>)
 
-    suspend fun uploadPhoto(uri: Uri, uid: String): Uri
+    suspend fun uploadAndDownloadProgressPhoto(uri: Uri, uid: String, profileSrc: Boolean, oldProfileUri: Uri?): Uri
+
+    fun deleteProgressPhoto(uri: Uri)
 
     suspend fun getExercisesByName(name: String): List<ExerciseModel>?
 

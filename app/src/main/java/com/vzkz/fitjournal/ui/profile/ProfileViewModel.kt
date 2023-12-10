@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.vzkz.fitjournal.core.boilerplate.BaseViewModel
 import com.vzkz.fitjournal.domain.model.UserModel
+import com.vzkz.fitjournal.domain.usecases.DeleteProgressPhotoUseCase
 import com.vzkz.fitjournal.domain.usecases.LogoutUseCase
 import com.vzkz.fitjournal.domain.usecases.UploadPhotoUseCase
 import com.vzkz.fitjournal.domain.usecases.datapersistence.GetUserPersistenceUseCase
@@ -19,7 +20,8 @@ import javax.inject.Inject
 class ProfileViewModel @Inject constructor(
     private val getUserPersistenceUseCase: GetUserPersistenceUseCase,
     private val logoutUseCase: LogoutUseCase,
-    private val uploadPhotoUseCase: UploadPhotoUseCase
+    private val uploadPhotoUseCase: UploadPhotoUseCase,
+    private val deleteProgressPhotoUseCase: DeleteProgressPhotoUseCase
 ) : BaseViewModel<ProfileState, ProfileIntent>(
     ProfileState.initial
 ) {
@@ -51,7 +53,7 @@ class ProfileViewModel @Inject constructor(
                 start = false
             )
 
-            is ProfileIntent.setImg -> state.copy(user = intent.updatedUser)
+            is ProfileIntent.UpdateUserLocally -> state.copy(user = intent.updatedUser)
         }
     }
 
@@ -77,16 +79,33 @@ class ProfileViewModel @Inject constructor(
 
     fun onUploadPhoto(uri: Uri, user: UserModel) {
         viewModelScope.launch {
-            try{
-                val result = withContext(Dispatchers.IO) { uploadPhotoUseCase(uri, user) }
+            try {
+                val result = withContext(Dispatchers.IO) { uploadPhotoUseCase(uri, user, false) }
                 val updatedPhotoList = user.progressPhotos.toMutableList()
                 updatedPhotoList.add(result)
-                dispatch(ProfileIntent.setImg(user.copy(progressPhotos = updatedPhotoList.toList())))
-            } catch (e: Exception){
+                dispatch(ProfileIntent.UpdateUserLocally(user.copy(progressPhotos = updatedPhotoList.toList())))
+            } catch (e: Exception) {
                 Log.e("Jaime", "Error calling storage. ${e.message}")
                 dispatch(ProfileIntent.Error("Error calling storage. ${e.message}"))
             }
         }
+    }
+
+    fun onDeleteProgressPhoto(uri: Uri, user: UserModel) {
+        viewModelScope.launch {
+            val updatedProgressPhotoList = user.progressPhotos.toMutableList()
+            updatedProgressPhotoList.remove(uri)
+            val updatedUser = user.copy(progressPhotos = updatedProgressPhotoList.toList())
+            dispatch(ProfileIntent.UpdateUserLocally(updatedUser))
+
+            withContext(Dispatchers.IO){
+                deleteProgressPhotoUseCase(
+                    uri = uri,
+                    updatedUser = updatedUser
+                )
+            }
+        }
+
     }
 
 

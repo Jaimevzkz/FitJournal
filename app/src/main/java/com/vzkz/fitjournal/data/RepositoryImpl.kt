@@ -50,6 +50,7 @@ class RepositoryImpl @Inject constructor(
                 }
             }
             userData.progressPhotos = storageService.getAllProgressPhotos(userData.uid)
+            userData.profilePhoto = storageService.getProfilePhoto(userData.uid)
             return user.toDomain(userData)
         }
         return null
@@ -127,7 +128,8 @@ class RepositoryImpl @Inject constructor(
             goal = userData.goal,
             workouts = userData.workouts,
             wotDates = userData.wotDates,
-            progressPhotos = userData.progressPhotos
+            progressPhotos = userData.progressPhotos,
+            profilePhoto = userData.profilePhoto
         )
     }
 
@@ -139,8 +141,12 @@ class RepositoryImpl @Inject constructor(
         firestoreService.addDate(uid, wotDates)
     }
 
-    override suspend fun uploadPhoto(uri: Uri, uid: String): Uri {
-        return storageService.uploadAndDownloadImage(uri, uid)
+    override suspend fun uploadAndDownloadProgressPhoto(uri: Uri, uid: String, profileSrc: Boolean, oldProfileUri: Uri?): Uri {
+        return storageService.uploadAndDownloadProgressPhoto(uri = uri, uid = uid, profileSrc = profileSrc, oldProfileUri = oldProfileUri)
+    }
+
+    override fun deleteProgressPhoto(uri: Uri){
+        storageService.deletePhoto(uri = uri)
     }
 
 

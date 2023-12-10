@@ -42,6 +42,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.spec.DirectionDestinationSpec
 import com.vzkz.fitjournal.R
+import com.vzkz.fitjournal.core.boilerplate.USERMODELFORTESTS
 import com.vzkz.fitjournal.destinations.ExListScreenDestination
 import com.vzkz.fitjournal.destinations.ProfileScreenDestination
 import com.vzkz.fitjournal.destinations.SearchExerciseScreenDestination
@@ -127,9 +128,9 @@ private fun ScreenBody(
                 contentAlignment = Alignment.TopCenter
             ) {
                 val workoutList = user?.workouts
-                if (workoutList != null) {
-                    var showDialog by remember { mutableStateOf(false) }
-                    LazyColumn {
+                var showDialog by remember { mutableStateOf(false) }
+                LazyColumn {
+                    if (workoutList != null) {
                         items(workoutList) { workout ->
                             MyCardViewWorkout(
                                 wotTitle = workout.wotName,
@@ -146,25 +147,25 @@ private fun ScreenBody(
                                 }
                             )
                         }
-                        item {
-                            MyAddWorkoutCardView { onAddWorkOutClicked() }
-                        }
+                    }
+                    item {
+                        MyAddWorkoutCardView { onAddWorkOutClicked() }
+                    }
 
-                    }
-                    if (showDialog) {
-                        MyConfirmDialog(
-                            modifier = Modifier.align(Alignment.Center),
-                            title = "Are you sure?",
-                            text = "Deleting a workout is undoable",
-                            onDismiss = { showDialog = false },
-                            onConfirm = {
-                                if (widToDelete != "")
-                                    onDeleteWorkout(widToDelete)
-                                showDialog = false
-                            },
-                            showDialog = showDialog
-                        )
-                    }
+                }
+                if (showDialog) {
+                    MyConfirmDialog(
+                        modifier = Modifier.align(Alignment.Center),
+                        title = "Are you sure?",
+                        text = "Deleting a workout is undoable",
+                        onDismiss = { showDialog = false },
+                        onConfirm = {
+                            if (widToDelete != "")
+                                onDeleteWorkout(widToDelete)
+                            showDialog = false
+                        },
+                        showDialog = showDialog
+                    )
                 }
             }
         }
@@ -187,8 +188,9 @@ private fun MyCardViewWorkout(
             .fillMaxWidth()
             .padding(16.dp)
             .shadow(elevation = 20.dp, shape = RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.tertiaryContainer)
+            .background(MaterialTheme.colorScheme.primaryContainer)
     ) {
+        val contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         if (editable) {
             IconButton(onClick = { onDeleteWorkout(wid) }, Modifier.align(Alignment.TopStart)) {
                 Icon(imageVector = Icons.Filled.Close, contentDescription = "Delete Workout")
@@ -209,7 +211,7 @@ private fun MyCardViewWorkout(
             ) {
                 Text(
                     text = wotTitle,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    color = contentColor,
                     style = MaterialTheme.typography.titleLarge
                 )
 
@@ -221,13 +223,13 @@ private fun MyCardViewWorkout(
                 ) {
                     Text(
                         text = ("$wotDuration min"),
-                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        color = contentColor,
                         style = MaterialTheme.typography.bodyLarge
                     )
                     MySpacer(size = 12)
                     Text(
                         text = exCount.toString() + stringResource(R.string.exercises),
-                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        color = contentColor,
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -237,7 +239,7 @@ private fun MyCardViewWorkout(
                 Icon(
                     imageVector = Icons.Filled.ArrowForwardIos,
                     contentDescription = "Go to Workout",
-                    tint = MaterialTheme.colorScheme.onTertiaryContainer
+                    tint = contentColor
                 )
             }
         }
@@ -247,13 +249,15 @@ private fun MyCardViewWorkout(
 
 @Composable
 private fun MyAddWorkoutCardView(onAddWorkOutClicked: () -> Unit) {
+    val backgroundColor = MaterialTheme.colorScheme.secondaryContainer
+    val contentColor = MaterialTheme.colorScheme.onSecondaryContainer
     Box(
         modifier = Modifier
             .height(150.dp)
             .fillMaxWidth()
             .padding(16.dp)
             .shadow(elevation = 20.dp, shape = RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.tertiaryContainer)
+            .background(backgroundColor)
     ) {
         Row(
             Modifier,
@@ -270,7 +274,7 @@ private fun MyAddWorkoutCardView(onAddWorkOutClicked: () -> Unit) {
             ) {
                 Text(
                     text = stringResource(R.string.add_workout),
-                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    color = contentColor,
                     style = MaterialTheme.typography.titleLarge
                 )
             }
@@ -283,7 +287,7 @@ private fun MyAddWorkoutCardView(onAddWorkOutClicked: () -> Unit) {
                 Icon(
                     imageVector = Icons.Filled.Add,
                     contentDescription = "Add Workout",
-                    tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                    tint = contentColor,
                     modifier = Modifier.size(30.dp)
                 )
             }
@@ -298,166 +302,13 @@ fun LightPreview() {
     FitJournalTheme {
         ScreenBody(
             start = true,
-            user = UserModel(
-                uid = "fl",
-                nickname = "k",
-                email = null,
-                firstname = "ja",
-                lastname = "kf",
-                workouts = listOf(
-                    WorkoutModel(
-                        wid = "wZSTSkzOQN25oEKDeocg",
-                        wotName = "Upper body strength",
-                        duration = 89,
-                        exCount = 3,
-                        wotOrder = 1,
-                        exercises = listOf(
-                            Exercises(
-                                exid = "vaK3TB32xdKgMifrKCV3",
-                                rest = 60,
-                                exData = ExerciseModel(
-                                    exName = "Squat",
-                                    muscle = "Legs",
-                                    difficulty = "Begginer",
-                                    instructions = "Example instruction"
-                                ),
-                                setXrepXweight = listOf(
-                                    SetXrepXweight(exNum = "1"),
-                                    SetXrepXweight(exNum = "2"),
-                                    SetXrepXweight(exNum = "3")
-                                ),
-                                setNum = 3,
-                                exOrder = 1
-                            ),
-                            Exercises(
-                                exid = "DIsDh0yIFJ5j5XWfOW81",
-                                rest = 30,
-                                exData = ExerciseModel(
-                                    exName = "Bench Press",
-                                    muscle = "Chest",
-                                    difficulty = "Intermediate",
-                                    instructions = "Example instruction 2"
-                                ),
-                                setXrepXweight = listOf(
-                                    SetXrepXweight(exNum = "1"),
-                                    SetXrepXweight(exNum = "2"),
-                                    SetXrepXweight(exNum = "3"),
-                                    SetXrepXweight(exNum = "4")
-                                ),
-                                setNum = 4,
-                                exOrder = 2
-                            ),
-                            Exercises(
-                                exid = "HpAkRh7jcECHRawrtqjI",
-                                rest = 60,
-                                exData = ExerciseModel(
-                                    exName = "Biceps curl",
-                                    muscle = "Biceps",
-                                    difficulty = "Intermediate",
-                                    instructions = "Example instruction 3"
-                                ),
-                                setXrepXweight = listOf(
-                                    SetXrepXweight(exNum = "1"),
-                                    SetXrepXweight(exNum = "2"),
-                                    SetXrepXweight(exNum = "3"),
-                                    SetXrepXweight(exNum = "4")
-                                ),
-                                setNum = 4,
-                                exOrder = 3
-                            )
-                        )
-                    ),
-                    WorkoutModel(
-                        wid = "rduoIqR4EJVN4FiEvucp",
-                        wotName = "Legs strength",
-                        duration = 105,
-                        exCount = 4,
-                        wotOrder = 2,
-                        exercises = listOf(
-                            Exercises(
-                                exid = "QOYW1RvcU0aVJnB1aiNa",
-                                rest = 120,
-                                exData = ExerciseModel(
-                                    exName = "Squat",
-                                    muscle = "Legs",
-                                    difficulty = "Begginer",
-                                    instructions = "Example instruction"
-                                ),
-                                setXrepXweight = listOf(
-                                    SetXrepXweight(exNum = "1"),
-                                    SetXrepXweight(exNum = "2"),
-                                    SetXrepXweight(exNum = "3")
-                                ),
-                                setNum = 3,
-                                exOrder = 1
-                            ),
-                            Exercises(
-                                exid = "DIsDh0yIFJ5j5XWfOW81",
-                                rest = 50,
-                                exData = ExerciseModel(
-                                    exName = "Bench Press",
-                                    muscle = "Chest",
-                                    difficulty = "Intermediate",
-                                    instructions = "Example instruction 2"
-                                ),
-                                setXrepXweight = listOf(
-                                    SetXrepXweight(exNum = "1"),
-                                    SetXrepXweight(exNum = "2"),
-                                    SetXrepXweight(exNum = "3"),
-                                    SetXrepXweight(exNum = "4")
-                                ),
-                                setNum = 4,
-                                exOrder = 2
-                            ),
-                            Exercises(
-                                exid = "aWIAv7909ody9t1kQQMe",
-                                rest = 50,
-                                exData = ExerciseModel(
-                                    exName = "Biceps curl",
-                                    muscle = "Biceps",
-                                    difficulty = "Intermediate",
-                                    instructions = "Example instruction 3"
-                                ),
-                                setXrepXweight = listOf(
-                                    SetXrepXweight(exNum = "1"),
-                                    SetXrepXweight(exNum = "2"),
-                                    SetXrepXweight(exNum = "3"),
-                                    SetXrepXweight(exNum = "4")
-                                ),
-                                setNum = 4,
-                                exOrder = 3
-                            ),
-                            Exercises(
-                                exid = "dmdFqRZcATGPv0N3cltR",
-                                rest = 50,
-                                exData = ExerciseModel(
-                                    exName = "Press",
-                                    muscle = "Chest",
-                                    difficulty = "Intermediate",
-                                    instructions = "Example instruction 2"
-                                ),
-                                setXrepXweight = listOf(
-                                    SetXrepXweight(exNum = "1")
-                                ),
-                                setNum = 1,
-                                exOrder = 4
-                            )
-                        )
-                    )
-                )
-            ),
+            user = USERMODELFORTESTS,
             onBottomBarClicked = {},
-            onAddWorkOutClicked = {},
+            onAddWorkOutClicked = {  },
             onWorkOutClicked = {},
             onDeleteWorkout = {}
         )
     }
 }
-
-//@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-//@Composable
-//fun DarkPreview() {
-//
-//}
 
 

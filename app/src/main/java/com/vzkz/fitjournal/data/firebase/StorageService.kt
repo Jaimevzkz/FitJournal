@@ -3,7 +3,9 @@ package com.vzkz.fitjournal.data.firebase
 import android.net.Uri
 import android.util.Log
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.UploadTask
+import com.vzkz.fitjournal.data.firebase.STORAGECONSTANTS.PROFILEPHOTO
 import com.vzkz.fitjournal.data.firebase.STORAGECONSTANTS.PROGRESSPHOTOS
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -19,9 +21,12 @@ private object STORAGECONSTANTS{
 
 class StorageService @Inject constructor(private val storage: FirebaseStorage) {
 
-    suspend fun uploadAndDownloadImage(uri: Uri, uid: String): Uri {
+    suspend fun uploadAndDownloadProgressPhoto(uri: Uri, uid: String, profileSrc: Boolean, oldProfileUri: Uri?): Uri {
+        if(profileSrc && oldProfileUri != null)
+            deletePhoto(oldProfileUri)
         return suspendCancellableCoroutine { cancellableContinuation ->
-            val reference = storage.reference.child("$uid/$PROGRESSPHOTOS/${uri.lastPathSegment}")
+            val photoSource = if(profileSrc) PROFILEPHOTO else PROGRESSPHOTOS
+            val reference = storage.reference.child("$uid/$photoSource/${uri.lastPathSegment}")
             reference.putFile(uri).addOnSuccessListener {
                 downloadImage(it, cancellableContinuation)
             }.addOnFailureListener {
@@ -29,6 +34,16 @@ class StorageService @Inject constructor(private val storage: FirebaseStorage) {
             }
         }
     }
+
+    fun deletePhoto(uri: Uri){
+        val reference = storage.reference.child("${uri.lastPathSegment}")
+        reference.delete().addOnSuccessListener {
+            Log.i("Jaime","Photo deleted correctly")
+        }.addOnFailureListener {
+            Log.e("Jaime","Error deleting photo")
+        }
+    }
+
 
     private fun downloadImage(
         uploadTask: UploadTask.TaskSnapshot, cancellableContinuation: CancellableContinuation<Uri>
@@ -42,6 +57,11 @@ class StorageService @Inject constructor(private val storage: FirebaseStorage) {
         val reference = storage.reference.child("$uid/$PROGRESSPHOTOS")
 
         return reference.listAll().await().items.map { it.downloadUrl.await() }
+    }
+
+    suspend fun getProfilePhoto(uid: String): Uri?{
+        val reference = storage.reference.child("$uid/$PROFILEPHOTO")
+        return reference.listAll().await().items.firstOrNull()?.downloadUrl?.await()
     }
 
 }

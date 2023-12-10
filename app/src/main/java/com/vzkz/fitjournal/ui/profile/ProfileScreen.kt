@@ -8,6 +8,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,10 +22,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
@@ -36,6 +41,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -52,7 +58,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -98,10 +103,19 @@ fun ProfileScreen(
         val start = profileViewModel.state.start
         var progressPhotosList: List<Uri> by remember { mutableStateOf(emptyList()) }
         progressPhotosList = user?.progressPhotos ?: emptyList()
+        var profilePhoto: Uri? by remember { mutableStateOf(null) }
+        profilePhoto = profileViewModel.state.user?.profilePhoto
         ScreenBody(
             user = user,
             start = start,
             progressPhotosList = progressPhotosList,
+            profilePhoto = profilePhoto,
+            onDeleteProgressPhoto = { uriToDelete ->
+                profileViewModel.onDeleteProgressPhoto(
+                    uri = uriToDelete,
+                    user = user ?: UserModel()
+                )
+            },
             onLogout = { profileViewModel.onLogout() },
             onBottomBarClicked = { navigator.navigate(it) },
             onSettingsClicked = { navigator.navigate(SettingsScreenDestination) },
@@ -118,6 +132,8 @@ fun ProfileScreen(
 private fun ScreenBody(
     user: UserModel?,
     start: Boolean,
+    profilePhoto: Uri?,
+    onDeleteProgressPhoto: (Uri) -> Unit,
     progressPhotosList: List<Uri>,
     onUploadImage: (Uri) -> Unit,
     onBottomBarClicked: (DirectionDestinationSpec) -> Unit,
@@ -149,42 +165,36 @@ private fun ScreenBody(
     val userTitle: String by remember { mutableStateOf("") }
     var uri: Uri? by remember { mutableStateOf(null) }
 
-    val intentCameraLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) {
-            if (it && uri?.path?.isNotEmpty() == true) {
-                onUploadImage(uri!!)
-            }
-        }
+    val intentCameraLauncher = cameraIntent(uri, onUploadImage)
 
-    val intentGalleryLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) {
-            if (it?.path?.isNotEmpty() == true) {
-                onUploadImage(it)
-            }
-        }
+    val intentGalleryLauncher = galleryIntent(onUploadImage)
 
+
+    var showPhotoDialog by remember { mutableStateOf(false) }
+    var uriToShow: Uri by remember { mutableStateOf(Uri.EMPTY) }
 
     Scaffold(bottomBar = {
         MyBottomBar(
             currentDestination = ProfileScreenDestination,
-            onClick = { if(it != ProfileScreenDestination) onBottomBarClicked(it) })
+            onClick = { if (it != ProfileScreenDestination) onBottomBarClicked(it) })
     }) { paddingValues ->
         if (!start) {
             MyCircularProgressbar()
         } else {
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)) {
                 Column(
                     modifier = Modifier
-                        .padding(paddingValues)
-                        .background(MaterialTheme.colorScheme.background)
-                        .fillMaxSize(),
+                        .padding(bottom = 68.dp)
+                        .background(MaterialTheme.colorScheme.background),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
                     //Top screen
                     Row(
                         modifier = Modifier
-                            .weight(0.8f)
+                            .weight(0.7f)
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
@@ -229,14 +239,27 @@ private fun ScreenBody(
                                 horizontalArrangement = Arrangement.Start,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Image(
-                                    modifier = Modifier
-                                        .size(80.dp)
-                                        .clip(shape = CircleShape)
-                                        .padding(12.dp),
-                                    painter = painterResource(id = R.drawable.defaultprofile),
-                                    contentDescription = "Profile image"
-                                )
+                                if (profilePhoto != null) {
+                                    AsyncImage(
+                                        modifier = Modifier
+                                            .size(100.dp)
+                                            .padding(12.dp)
+                                            .clip(shape = CircleShape),
+                                        model = profilePhoto,
+                                        contentDescription = "Profile photo",
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Image(
+                                        modifier = Modifier
+                                            .size(100.dp)
+                                            .clip(shape = CircleShape)
+                                            .padding(12.dp),
+                                        painter = painterResource(id = R.drawable.defaultprofile),
+                                        contentDescription = "Profile photo",
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
                                 MySpacer(size = 16)
                                 Column(modifier = Modifier.padding(12.dp)) {
                                     Text(
@@ -258,7 +281,6 @@ private fun ScreenBody(
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(125.dp)
                             ) {
                                 LazyRow {
                                     item {
@@ -272,7 +294,13 @@ private fun ScreenBody(
                                     }
                                     if(progressPhotosList.isNotEmpty()){
                                         items(progressPhotosList) { progressPhoto ->
-                                            ProgressImgCard(uri = progressPhoto)
+                                            ProgressImgCard(
+                                                uri = progressPhoto,
+                                                onImgCliked = { uriClicked ->
+                                                    uriToShow = uriClicked
+                                                    showPhotoDialog = true
+                                                }
+                                            )
                                         }
                                     }
                                 }
@@ -280,120 +308,119 @@ private fun ScreenBody(
                         }
 
                         MySpacer(size = 16)
+
                         Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
                             modifier = Modifier
+                                .fillMaxWidth()
                                 .shadow(elevation = 16.dp, shape = RoundedCornerShape(16.dp))
                                 .background(MaterialTheme.colorScheme.secondaryContainer)
+                                .verticalScroll(rememberScrollState())
                         ) {
-                            val padding = 12.dp
-                            Spacer(modifier = Modifier.weight(1f))
-                            Row(modifier = Modifier.padding(horizontal = padding)) {
-                                Text(
-                                    text = stringResource(R.string.nickname) + ":",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                                Spacer(modifier = Modifier.weight(1f))
-                                Text(
-                                    text = nickname, style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                            Spacer(modifier = Modifier.weight(1f))
-                            Row(modifier = Modifier.padding(horizontal = padding)) {
-                                Text(
-                                    text = stringResource(R.string.email) + ":",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Spacer(modifier = Modifier.weight(1f))
-                                Text(
-                                    text = email,
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                            Spacer(modifier = Modifier.weight(1f))
-                            Row(modifier = Modifier.padding(horizontal = padding)) {
-                                Text(
-                                    text = stringResource(R.string.weight) + ":",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Spacer(modifier = Modifier.weight(1f))
-                                Text(
-                                    text = if (weight == -1) "- Kg" else "$weight Kg",
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    style = MaterialTheme.typography.titleLarge
-                                )
-                            }
-                            Spacer(modifier = Modifier.weight(1f))
-                            Row(modifier = Modifier.padding(horizontal = padding)) {
-                                Text(
-                                    text = stringResource(R.string.age) + ":",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Spacer(modifier = Modifier.weight(1f))
-                                Text(
-                                    text = if (age == -1) "- " else "$age",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                            Spacer(modifier = Modifier.weight(1f))
-                            Row(modifier = Modifier.padding(horizontal = padding)) {
-                                Text(
-                                    text = stringResource(R.string.gender) + ":",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Spacer(modifier = Modifier.weight(1f))
-                                Text(
-                                    text = gender, style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                            Spacer(modifier = Modifier.weight(1f))
-                            Row(modifier = Modifier.padding(horizontal = padding)) {
-                                Text(
-                                    text = stringResource(R.string.goal) + ":",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Spacer(modifier = Modifier.weight(1f))
-                                Text(
-                                    text = goal, style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                            Spacer(modifier = Modifier.weight(1f))
+                            val spaceBetween = 14
+                            val innerSpaceBetween = 6
+                            MySpacer(size = spaceBetween)
+
+                            Text(
+                                text = stringResource(R.string.nickname),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            MySpacer(size = innerSpaceBetween)
+                            Text(
+                                text = nickname, style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            MySpacer(size = spaceBetween)
+
+                            Text(
+                                text = stringResource(R.string.email),
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontWeight = FontWeight.Medium
+                            )
+                            MySpacer(size = innerSpaceBetween)
+                            Text(
+                                text = email,
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            MySpacer(size = spaceBetween)
+
+                            Text(
+                                text = stringResource(R.string.weight),
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontWeight = FontWeight.Medium
+                            )
+                            MySpacer(size = innerSpaceBetween)
+                            Text(
+                                text = if (weight == -1) "- Kg" else "$weight Kg",
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            MySpacer(size = spaceBetween)
+
+                            Text(
+                                text = stringResource(R.string.age),
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontWeight = FontWeight.Medium
+                            )
+                            MySpacer(size = innerSpaceBetween)
+                            Text(
+                                text = if (age == -1) "- " else "$age",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            MySpacer(size = spaceBetween)
+
+                            Text(
+                                text = stringResource(R.string.gender),
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontWeight = FontWeight.Medium
+                            )
+                            MySpacer(size = innerSpaceBetween)
+                            Text(
+                                text = gender, style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            MySpacer(size = spaceBetween)
+
+                            Text(
+                                text = stringResource(R.string.goal),
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontWeight = FontWeight.Medium
+                            )
+                            MySpacer(size = innerSpaceBetween)
+                            Text(
+                                text = goal, style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            MySpacer(size = spaceBetween)
                         }
 
                     }
-                    //Bottom screen
-                    Column(
-                        modifier = Modifier
-                            .weight(1.2f),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Button(onClick = { onLogout() }) {
-                            Text(text = stringResource(R.string.logout))
-                        }
-                    }
                 }
+                //Bottom screen
+                Button(
+                    onClick = {
+                        onLogout()
+                    },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(12.dp)
+                ) {
+                    Text(text = stringResource(R.string.logout))
+                }
+                //Dialogs
                 if (showDialog) {
                     UploadPhotoDialog(
-                        onDismiss = {
-                            showDialog = false
-                        },
+                        onDismiss = { showDialog = false },
                         onCameraClicked = {
                             uri = generateUri(userTitle, context)
                             intentCameraLauncher.launch(uri)
@@ -402,7 +429,19 @@ private fun ScreenBody(
                         onGalleryClicked = {
                             intentGalleryLauncher.launch("image/*")
                             showDialog = false
-                        })
+                        }
+                    )
+                }
+
+                if (showPhotoDialog) {
+                    PhotoViewDialog(
+                        onDeleteProgressPhoto = {
+                            showPhotoDialog = false
+                            onDeleteProgressPhoto(it)
+                        },
+                        onDismiss = { showPhotoDialog = false },
+                        uri = uriToShow
+                    )
                 }
 
             }
@@ -420,7 +459,7 @@ private fun AddProgressPhotoCard(
     Card(
         onClick = { onAddPressed() },
         modifier = Modifier
-            .padding(12.dp)
+            .padding(10.dp)
             .padding(vertical = 4.dp)
             .border(3.dp, contentColor, shape = RoundedCornerShape(30))
     ) {
@@ -432,23 +471,25 @@ private fun AddProgressPhotoCard(
                 .padding(12.dp)
         ) {
             Icon(imageVector = Icons.Filled.Add, contentDescription = "Add", tint = contentColor)
-            Text(text = "Add", color = contentColor)
-            Text(text = "progress photo", color = contentColor)
+            Text(text = stringResource(R.string.add), color = contentColor)
+            Text(text = stringResource(R.string.progress_photo), color = contentColor)
         }
     }
 }
 
 @Composable
-private fun ProgressImgCard(uri: Uri) {
+private fun ProgressImgCard(uri: Uri, onImgCliked: (Uri) -> Unit) {
     Card(
         modifier = Modifier
-            .padding(12.dp)
+            .padding(10.dp)
             .padding(vertical = 4.dp)
             .width(145.dp)
+            .height(100.dp)
             .border(
                 BorderStroke(width = 3.dp, color = Color.Transparent),
                 shape = RoundedCornerShape(30)
             )
+            .clickable { onImgCliked(uri) }
     ) {
         AsyncImage(
             model = uri,
@@ -459,7 +500,7 @@ private fun ProgressImgCard(uri: Uri) {
 }
 
 @Composable
-private fun UploadPhotoDialog(
+fun UploadPhotoDialog(
     onDismiss: () -> Unit,
     onCameraClicked: () -> Unit,
     onGalleryClicked: () -> Unit
@@ -499,7 +540,86 @@ private fun UploadPhotoDialog(
     }
 }
 
-private fun generateUri(userTitle: String, context: Context): Uri {
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PhotoViewDialog(
+    onDismiss: () -> Unit,
+    onDeleteProgressPhoto: (Uri) -> Unit,
+    uri: Uri
+) {
+    Dialog(
+        onDismissRequest = { onDismiss() }
+    ) {
+        Scaffold(
+            modifier = Modifier
+                .height(400.dp)
+                .clip(RoundedCornerShape(15)),
+            topBar = {
+                TopAppBar(title = {}, actions = {
+                    Row(
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                    ) {
+                        IconButton(
+                            onClick = { onDeleteProgressPhoto(uri) },
+                            modifier = Modifier
+                                .padding(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Delete,
+                                contentDescription = "Delete image",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                        IconButton(
+                            onClick = { onDismiss() },
+                            modifier = Modifier
+                                .padding(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = "Close Dialog",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+                })
+            }
+        ) { paddingValues ->
+            AsyncImage(
+                model = uri,
+                contentDescription = "Progress photo",
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .padding(paddingValues)
+                    .fillMaxSize()
+            )
+        }
+    }
+}
+
+//Camera
+@Composable
+fun cameraIntent(
+    uri: Uri?,
+    onUploadImage: (Uri) -> Unit
+) = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) {
+    if (it && uri?.path?.isNotEmpty() == true) {
+        onUploadImage(uri)
+    }
+}
+
+@Composable
+fun galleryIntent(onUploadImage: (Uri) -> Unit) =
+    rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) {
+        if (it?.path?.isNotEmpty() == true) {
+            onUploadImage(it)
+        }
+    }
+
+fun generateUri(userTitle: String, context: Context): Uri {
     return FileProvider.getUriForFile(
         Objects.requireNonNull(context),
         "com.vzkz.fitjournal.provider",
@@ -507,18 +627,18 @@ private fun generateUri(userTitle: String, context: Context): Uri {
     )
 }
 
-private fun createFile(userTitle: String, context: Context): File {
+fun createFile(userTitle: String, context: Context): File {
     val name: String =
         userTitle.ifEmpty { generateUniqueId() + "image" }
     return File.createTempFile(name, ".jpg", context.externalCacheDir)
 }
 
-private fun generateUniqueId(): String {
+fun generateUniqueId(): String {
     return SimpleDateFormat("yyyyMMdd_hhmmss").format(Date())
 }
 
 
-@Preview(device = Devices.NEXUS_5X)
+@Preview
 @Composable
 fun LightPreview() {
     FitJournalTheme {
@@ -526,6 +646,8 @@ fun LightPreview() {
             user = USERMODELFORTESTS,
             start = true,
             progressPhotosList = USERMODELFORTESTS.progressPhotos,
+            profilePhoto = null,
+            onDeleteProgressPhoto = {},
             onBottomBarClicked = {},
             onSettingsClicked = { },
             onLogout = { },

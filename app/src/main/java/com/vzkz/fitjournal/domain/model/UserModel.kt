@@ -26,7 +26,8 @@ data class UserModel(
     var goal: String? = null,
     var workouts: List<WorkoutModel>? = null,
     var wotDates: List<Pair<LocalDate, String>> = emptyList(),
-    var progressPhotos: List<Uri> = emptyList()
+    var progressPhotos: List<Uri> = emptyList(),
+    var profilePhoto: Uri? = null
 ) {
     fun toRoomEntity(): UserEntity {
         return UserEntity(
