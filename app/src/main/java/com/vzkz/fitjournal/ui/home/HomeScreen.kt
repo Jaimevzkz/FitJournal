@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -57,6 +58,7 @@ import com.kizitonwose.calendar.core.previousMonth
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.spec.DirectionDestinationSpec
+import com.vzkz.fitjournal.R
 import com.vzkz.fitjournal.core.boilerplate.USERMODELFORTESTS
 import com.vzkz.fitjournal.destinations.HomeScreenDestination
 import com.vzkz.fitjournal.destinations.ProfileScreenDestination
@@ -344,10 +346,10 @@ private fun MyWorkoutSumCard(
         ) {
             Text(
                 text = if (today) {
-                    "Today"
+                    stringResource(R.string.today)
                 } else {
                     "${date.dayOfMonth}-${date.monthValue}-${date.year}"
-                } + "'s workout",
+                } + stringResource(R.string.s_workout),
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
@@ -370,7 +372,7 @@ private fun MyWorkoutSumCard(
                     )
                     MySpacer(size = 12)
                     Text(
-                        text = "${wot.exercises.size} exercises",
+                        text = "${wot.exercises.size} " + stringResource(R.string.exercise_s),
                         color = MaterialTheme.colorScheme.onTertiaryContainer,
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -378,7 +380,7 @@ private fun MyWorkoutSumCard(
             }else{
                 MySpacer(size = 8)
                 Text(
-                    text = "No workout logs for this day...",
+                    text = stringResource(R.string.no_workout_logs_for_this_day),
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                     style = MaterialTheme.typography.titleLarge
                 )

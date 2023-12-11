@@ -156,8 +156,8 @@ private fun ScreenBody(
                 if (showDialog) {
                     MyConfirmDialog(
                         modifier = Modifier.align(Alignment.Center),
-                        title = "Are you sure?",
-                        text = "Deleting a workout is undoable",
+                        title = stringResource(R.string.are_you_sure),
+                        text = stringResource(R.string.deleting_a_workout_is_undoable),
                         onDismiss = { showDialog = false },
                         onConfirm = {
                             if (widToDelete != "")

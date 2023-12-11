@@ -168,7 +168,7 @@ private fun ScreenBody(
             )
             if (!isNicknameValid) {
                 Text(
-                    text = "Nickname shouldn't be empty",
+                    text = stringResource(R.string.nickname_shouldn_t_be_empty),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -177,7 +177,7 @@ private fun ScreenBody(
             MyGenericTextField(
                 modifier = Modifier,
                 text = firstname,
-                hint = "First name",
+                hint = stringResource(R.string.first_name),
                 onTextChanged = {
                     firstname = it
                     isFirstNameValid = (firstname != "")
@@ -185,7 +185,7 @@ private fun ScreenBody(
             )
             if (!isFirstNameValid) {
                 Text(
-                    text = "First name shouldn't be empty",
+                    text = stringResource(R.string.first_name_shouldn_t_be_empty),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -194,7 +194,7 @@ private fun ScreenBody(
             MyGenericTextField(
                 modifier = Modifier,
                 text = lastname,
-                hint = "Last name",
+                hint = stringResource(R.string.last_name),
                 onTextChanged = {
                     lastname = it
                     isLastNameValid = lastname != ""
@@ -202,7 +202,7 @@ private fun ScreenBody(
             )
             if (!isLastNameValid) {
                 Text(
-                    text = "Last name shouldn't be empty",
+                    text = stringResource(R.string.last_name_shouldn_t_be_empty),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )
