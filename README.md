@@ -1,3 +1,4 @@
+ **Inside the root repository a _fitjournal.apk_ can be found that can be downloaded. A _Memoria_FitJournal.pdf_ file can also be found with a detailed memo of the project in Spanish**
 # FitJournal
 Fit Journal is an application that serves as a digital gym journal. In this app, users can create their own workout routines by searching for exercises through a remote service and adding them to workouts with personalized names. Users can also track their progress in the gym by uploading images that will be stored in the cloud using Firebase Storage. In the Home tab, users can view a calendar displaying the days they have worked out. User management, including authentication and user data, is handled through the Google Firebase service.
 
