@@ -1,7 +1,7 @@
 # FitJournal
 Fit Journal is an application that serves as a digital gym journal. In this app, users can create their own workout routines by searching for exercises through a remote service and adding them to workouts with personalized names. Users can also track their progress in the gym by uploading images that will be stored in the cloud using Firebase Storage. In the Home tab, users can view a calendar displaying the days they have worked out. User management, including authentication and user data, is handled through the Google Firebase service.
 
-# Requirements Catalog (Features)
+## Requirements Catalog (Features)
 -  Create profile: In the application, users can create profiles that will be stored in a cloud database, and it will be possible to log in on any device with the application.
 - Modify profile: Users can add and modify various profile data to enhance their personalized experience in the application.
 - Profile picture: Allows uploading a profile picture that will be saved in the cloud.
@@ -12,10 +12,10 @@ Fit Journal is an application that serves as a digital gym journal. In this app,
 - Calendar: Allows users to view a calendar with the days on which they have worked out.
 - Progress: Allows users to upload a photo of themselves as a reference for future tracking.
 
-# Architecture
+## Architecture
 - **Clean architecture**: In order to have a structured, escalable and encapsulated project.
 - **MVI pseudo-architecture**: Model-View-Intent has been used to structure the UI layer (MVI is been selected over MVVM due to design decisions (extensively explained in **_Memoria_FitJournal.pdf_** file in the root of the repository))
-# Tech stack
+## Tech stack
 Listed below are all the technologies used for the development of the project:
 - [Kotlin](https://kotlinlang.org/): The programming language chosen for the development of the project due to the modern syntax and wide variety of features.
 - [Jetpack Compose](https://developer.android.com/jetpack/compose): The new modern toolkit recommended by google. Jetpack compose makes coding a lot easier, its more intuitive and powerful.
