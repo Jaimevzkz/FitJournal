@@ -38,8 +38,6 @@ class RepositoryImpl @Inject constructor(
         if(user != null) {
             val userData: UserModel
             try {
-                //TODO eliminar solo pruebas
-//                firestoreService.insertUser(USERMODELFORTESTS)
 
                 userData = firestoreService.getUserData(user.uid)
             } catch (e: Exception) {

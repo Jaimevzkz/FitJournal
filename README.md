@@ -32,3 +32,19 @@ Listed below are all the technologies used for the development of the project:
 	- [Calendar](https://github.com/kizitonwose/Calendar): Used as a calendar inside the app.
 - [Coil](https://coil-kt.github.io/coil/compose/): Used for asynchronous photo loading.
 - [Retrofit](https://square.github.io/retrofit/): Used for API rest.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
